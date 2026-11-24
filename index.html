@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Team Workspace</title>
-<script src="https://jsdelivr.net"></script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,sans-serif;background:#0f172a;color:#f8fafc;height:100vh;display:flex;overflow:hidden}
@@ -68,9 +68,9 @@ iframe{width:100%;height:100%;border:none;flex:1;background:#fff}
 </main>
 <script>
 const $=id=>document.getElementById(id);
-document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav,.view").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("v-"+b.dataset.t).classList.add("active")});
+document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav,.view").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("v-"+b.dataset.t).classList.add("active");if(b.dataset.t==="py")initPy()});
 $("hp").srcdoc=$("hc").value;
-let py=null;loadPyodide().then(p=>{py=p;$("ps").textContent="Ready"});
+let py=null,pyLoading=false;function initPy(){if(py||pyLoading)return;pyLoading=true;let sc=document.createElement("script");sc.src="https://jsdelivr.net";sc.onload=()=>loadPyodide().then(p=>{py=p;$("ps").textContent="Ready"});document.head.appendChild(sc)}
 async function runPy(){if(!py)return;py.runPython("import sys,io\nsys.stdout=io.StringIO()");try{await py.runPythonAsync($("pc").value);$("po").textContent=py.runPython("sys.stdout.getvalue()")||"Done"}catch(e){$("po").textContent=e}}
 function openDoc(u){u=u||$("url").value.trim();if(u)window.open(u.startsWith("http")?u:"https://"+u,"_blank","width=1100,height=750")}
 let data=JSON.parse(localStorage.getItem("ws_d")||"null")||{tasks:[],shared:[]};
