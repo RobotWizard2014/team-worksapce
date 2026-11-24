@@ -574,7 +574,7 @@
         <label for="subWords">Connected Words (comma separated)</label>
         <input type="text" id="subWords" placeholder="e.g., Waves, Coral, Deep">
       </div>
-      <button id="generateBtn" class="btn-primary" type="button">Update Map</button>
+      <button id="generateBtn" class="btn-primary" type="button">Update Map</button><button id="shareMapBtn" class="btn-secondary" type="button">Share to Group</button>
     </header>
 
     <div class="floating-panel size-panel" id="sizePanel" role="group" aria-label="Bubble size" hidden>
@@ -1201,7 +1201,7 @@
       else maps.unshift(data);
       storage.set(LIBRARY_KEY, maps);
       storage.set(CURRENT_KEY, data.id);
-      renderMapList();
+      renderMapList(); window.addEventListener("message", e => { if (e.data && e.data.type === "LOAD_MAP" && e.data.map) { saveCurrent(); const m = e.data.map; m.id = uid(); maps.unshift(m); loadMap(m); saveCurrent(); setStatus("Loaded from Group"); } }); $("shareMapBtn").addEventListener("click", () => { saveCurrent(); window.parent.postMessage({ type: "SHARE_MAP", map: serialize() }, "*"); setStatus("Shared to Group!"); });
       setStatus('All changes saved');
     }
 
@@ -1285,7 +1285,7 @@
       if (!data) return;
       loadMap(data);
       storage.set(CURRENT_KEY, id);
-      renderMapList();
+      renderMapList(); window.addEventListener("message", e => { if (e.data && e.data.type === "LOAD_MAP" && e.data.map) { saveCurrent(); const m = e.data.map; m.id = uid(); maps.unshift(m); loadMap(m); saveCurrent(); setStatus("Loaded from Group"); } }); $("shareMapBtn").addEventListener("click", () => { saveCurrent(); window.parent.postMessage({ type: "SHARE_MAP", map: serialize() }, "*"); setStatus("Shared to Group!"); });
       closeMapsPanel();
     }
 
@@ -1301,7 +1301,7 @@
           createNewMap();
         }
       }
-      renderMapList();
+      renderMapList(); window.addEventListener("message", e => { if (e.data && e.data.type === "LOAD_MAP" && e.data.map) { saveCurrent(); const m = e.data.map; m.id = uid(); maps.unshift(m); loadMap(m); saveCurrent(); setStatus("Loaded from Group"); } }); $("shareMapBtn").addEventListener("click", () => { saveCurrent(); window.parent.postMessage({ type: "SHARE_MAP", map: serialize() }, "*"); setStatus("Shared to Group!"); });
     }
 
     function formatDate(ts) {
@@ -1363,7 +1363,7 @@
       saveCurrent();
       mapsPanel.hidden = false;
       mapsBtn.setAttribute('aria-expanded', 'true');
-      renderMapList();
+      renderMapList(); window.addEventListener("message", e => { if (e.data && e.data.type === "LOAD_MAP" && e.data.map) { saveCurrent(); const m = e.data.map; m.id = uid(); maps.unshift(m); loadMap(m); saveCurrent(); setStatus("Loaded from Group"); } }); $("shareMapBtn").addEventListener("click", () => { saveCurrent(); window.parent.postMessage({ type: "SHARE_MAP", map: serialize() }, "*"); setStatus("Shared to Group!"); });
     }
 
     function closeMapsPanel() {
@@ -1667,7 +1667,7 @@
       setMode('auto', false);
       saveCurrent();
     }
-    renderMapList();
+    renderMapList(); window.addEventListener("message", e => { if (e.data && e.data.type === "LOAD_MAP" && e.data.map) { saveCurrent(); const m = e.data.map; m.id = uid(); maps.unshift(m); loadMap(m); saveCurrent(); setStatus("Loaded from Group"); } }); $("shareMapBtn").addEventListener("click", () => { saveCurrent(); window.parent.postMessage({ type: "SHARE_MAP", map: serialize() }, "*"); setStatus("Shared to Group!"); });
     draw();
 
     document.fonts.ready.then(() => {
