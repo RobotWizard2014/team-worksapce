@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Download Team Workspace</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      max-width: 560px;
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 40px 32px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    h1 { font-size: 32px; margin-bottom: 12px; }
+    p { color: #94a3b8; font-size: 16px; line-height: 1.6; margin-bottom: 28px; }
+    .buttons { display: flex; flex-direction: column; gap: 12px; }
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .btn-primary {
+      background: #6366f1;
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+    }
+    .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
+    .btn-secondary {
+      background: #0f172a;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+    }
+    .btn-secondary:hover { border-color: #6366f1; }
+    .features {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid #334155;
+      font-size: 13px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <span class="badge">Version 1.0 • Mac & Windows</span>
+    <h1>Team Workspace</h1>
+    <p>All-in-one desktop app with Word Bubble Map, Google Docs, HTML Studio, Python Terminal, and Group Collaboration.</p>
+
+    <div class="buttons">
+      <a id="macBtn" class="btn btn-primary" href="YOUR_MAC_DMG_DOWNLOAD_LINK">
+         Download for Mac (.dmg)
+      </a>
+      <a id="winBtn" class="btn btn-secondary" href="YOUR_WINDOWS_EXE_DOWNLOAD_LINK">
+        ⊞ Download for Windows (.exe)
+      </a>
+    </div>
+
+    <div class="features">
+      <span>🫧 Bubble Maps</span>
+      <span>📄 Google Docs</span>
+      <span>🌐 HTML Studio</span>
+      <span>🐍 Python Terminal</span>
+    </div>
+  </div>
+
+  <script>
+    if (navigator.platform.toLowerCase().includes('win')) {
+      const macBtn = document.getElementById('macBtn');
+      const winBtn = document.getElementById('winBtn');
+      winBtn.className = 'btn btn-primary';
+      macBtn.className = 'btn btn-secondary';
+      winBtn.parentNode.prepend(winBtn);
+    }
+  </script>
+</body>
+</html>
