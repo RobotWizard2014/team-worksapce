@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8fafc">
+  <title>Word Bubble Map</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      color-scheme: light;
+      --bg: #f8fafc;
+      --grid: #cbd5e1;
+      --surface: rgba(255, 255, 255, 0.94);
+      --surface-solid: #ffffff;
+      --border: rgba(226, 232, 240, 0.9);
+      --input-border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --icon: #334155;
+      --hover: #eef2ff;
+      --accent: #6366f1;
+      --accent-soft: rgba(99, 102, 241, 0.35);
+      --disabled: #cbd5e1;
+      --seg-bg: #f1f5f9;
+      --danger: #dc2626;
+      --hint-bg: rgba(15, 23, 42, 0.85);
+      --hint-text: #f8fafc;
+      --panel-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0b1120;
+      --grid: #1e293b;
+      --surface: rgba(15, 23, 42, 0.92);
+      --surface-solid: #0f172a;
+      --border: rgba(51, 65, 85, 0.8);
+      --input-border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --icon: #cbd5e1;
+      --hover: rgba(99, 102, 241, 0.18);
+      --accent: #818cf8;
+      --accent-soft: rgba(129, 140, 248, 0.4);
+      --disabled: #475569;
+      --seg-bg: #1e293b;
+      --danger: #f87171;
+      --hint-bg: rgba(30, 41, 59, 0.92);
+      --hint-text: #e2e8f0;
+      --panel-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45), 0 4px 10px -2px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      background-image: radial-gradient(var(--grid) 1.2px, transparent 1.2px);
+      background-size: 24px 24px;
+      height: 100vh;
+      overflow: hidden;
+      color: var(--text);
+      user-select: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .app-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .toolbar {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(94%, 980px);
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      box-shadow: var(--panel-shadow);
+      border-radius: 16px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+      z-index: 20;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .input-group.grow {
+      flex-grow: 1;
+    }
+
+    label, .label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    input[type="text"] {
+      height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--surface-solid);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      width: 100%;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    button {
+      font-family: inherit;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      height: 40px;
+      padding: 0 20px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #ffffff;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      height: 40px;
+      padding: 0 16px;
+      background: var(--surface-solid);
+      color: var(--text);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      background: var(--hover);
+    }
+
+    .small {
+      height: 34px;
+      padding: 0 14px;
+      font-size: 13px;
+    }
+
+    .btn-ghost {
+      padding: 6px 8px;
+      background: transparent;
+      color: var(--accent);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .btn-ghost:hover {
+      background: var(--hover);
+    }
+
+    .maps-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .maps-btn {
+      height: 40px;
+      max-width: 190px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      background: var(--surface-solid);
+      color: var(--text);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .maps-btn:hover,
+    .maps-btn[aria-expanded="true"] {
+      border-color: var(--accent);
+    }
+
+    .maps-btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      color: var(--muted);
+    }
+
+    .maps-btn-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .maps-panel {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 0;
+      width: 330px;
+      max-height: min(70vh, 540px);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 16px;
+      background: var(--surface-solid);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--panel-shadow);
+      user-select: text;
+    }
+
+    .maps-panel[hidden] {
+      display: none;
+    }
+
+    .panel-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .save-status {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .panel-divider {
+      height: 1px;
+      background: var(--input-border);
+    }
+
+    .map-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .map-item {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+    }
+
+    .map-item.current {
+      background: var(--hover);
+      border-color: var(--accent-soft);
+    }
+
+    .map-open {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      padding: 8px 10px;
+      background: transparent;
+      color: var(--text);
+      border-radius: 9px;
+      text-align: left;
+    }
+
+    .map-item:not(.current) .map-open:hover {
+      background: var(--hover);
+    }
+
+    .map-name {
+      max-width: 100%;
+      font-size: 13px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .map-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .empty-list {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 4px 2px;
+    }
+
+    .panel-footer {
+      justify-content: space-between;
+    }
+
+    .floating-panel {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 4px;
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--panel-shadow);
+      z-index: 10;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: transparent;
+      color: var(--icon);
+      border-radius: 8px;
+    }
+
+    .icon-btn:hover {
+      background: var(--hover);
+      color: var(--accent);
+    }
+
+    .icon-btn.danger:hover {
+      color: var(--danger);
+    }
+
+    .icon-btn:disabled {
+      color: var(--disabled);
+      cursor: not-allowed;
+      background: transparent;
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .readout {
+      min-width: 52px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .divider {
+      width: 1px;
+      height: 20px;
+      background: var(--input-border);
+      margin: 0 4px;
+    }
+
+    .zoom-controls {
+      right: 20px;
+      bottom: 20px;
+    }
+
+    .mode-controls {
+      left: 20px;
+      bottom: 20px;
+    }
+
+    .segmented {
+      display: flex;
+      gap: 2px;
+      padding: 3px;
+      background: var(--seg-bg);
+      border-radius: 9px;
+    }
+
+    .seg-btn {
+      height: 28px;
+      padding: 0 12px;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .seg-btn:hover {
+      color: var(--text);
+    }
+
+    .seg-btn[aria-pressed="true"] {
+      background: var(--surface-solid);
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+    }
+
+    .icon-sun { display: none; }
+    [data-theme="dark"] .icon-sun { display: block; }
+    [data-theme="dark"] .icon-moon { display: none; }
+
+    .size-panel {
+      transform: translate(-50%, -100%);
+    }
+
+    .size-panel.below {
+      transform: translate(-50%, 0);
+    }
+
+    .size-panel[hidden] {
+      display: none;
+    }
+
+    .size-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      padding: 0 6px 0 8px;
+    }
+
+    .hint-badge {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: calc(100% - 560px);
+      background: var(--hint-bg);
+      color: var(--hint-text);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.4;
+      text-align: center;
+      padding: 8px 16px;
+      border-radius: 18px;
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    @media (max-width: 1000px) {
+      .hint-badge {
+        bottom: 78px;
+        max-width: 90%;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        top: 12px;
+        padding: 12px;
+      }
+      .maps-btn {
+        max-width: none;
+        width: 100%;
+      }
+      .maps-panel {
+        width: 100%;
+      }
+      .mode-controls {
+        left: 12px;
+        bottom: 12px;
+      }
+      .zoom-controls {
+        right: 12px;
+        bottom: 62px;
+      }
+      .hint-badge {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header class="toolbar">
+      <div class="maps-wrap">
+        <div class="input-group">
+          <span class="label" id="mapsLabel">Map</span>
+          <button id="mapsBtn" class="maps-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="mapsPanel" aria-describedby="mapsLabel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-7.5l-2-3H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+            <span class="maps-btn-label" id="mapsBtnLabel">Untitled map</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+        </div>
+
+        <div id="mapsPanel" class="maps-panel" role="dialog" aria-label="Your maps" hidden>
+          <div class="input-group">
+            <label for="mapName">Map name</label>
+            <input type="text" id="mapName" placeholder="Untitled map" maxlength="60">
+          </div>
+          <div class="panel-row">
+            <button class="btn-primary small" id="saveBtn" type="button">Save</button>
+            <button class="btn-secondary small" id="newMapBtn" type="button">New map</button>
+            <span class="save-status" id="saveStatus" aria-live="polite"></span>
+          </div>
+          <div class="panel-divider" aria-hidden="true"></div>
+          <div class="input-group">
+            <span class="label">Saved maps</span>
+            <ul class="map-list" id="mapList"></ul>
+          </div>
+          <div class="panel-divider" aria-hidden="true"></div>
+          <div class="panel-row panel-footer">
+            <button class="btn-ghost" id="exportBtn" type="button">Export to file</button>
+            <button class="btn-ghost" id="importBtn" type="button">Import from file</button>
+            <input type="file" id="importInput" accept="application/json,.json" hidden>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="mainWord">Center Topic</label>
+        <input type="text" id="mainWord" placeholder="e.g., Ocean">
+      </div>
+      <div class="input-group grow">
+        <label for="subWords">Connected Words (comma separated)</label>
+        <input type="text" id="subWords" placeholder="e.g., Waves, Coral, Deep">
+      </div>
+      <button id="generateBtn" class="btn-primary" type="button">Update Map</button>
+    </header>
+
+    <div class="floating-panel size-panel" id="sizePanel" role="group" aria-label="Bubble size" hidden>
+      <span class="size-label">Size</span>
+      <button class="icon-btn" id="shrinkBtn" type="button" aria-label="Make bubble smaller">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>
+      </button>
+      <span class="readout" id="sizeReadout" aria-live="polite">100%</span>
+      <button class="icon-btn" id="growBtn" type="button" aria-label="Make bubble bigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+
+    <div class="floating-panel mode-controls">
+      <div class="segmented" role="group" aria-label="Layout mode">
+        <button class="seg-btn" id="autoModeBtn" type="button" aria-pressed="true" title="Bubbles pull each other into place">Auto-arrange</button>
+        <button class="seg-btn" id="freeModeBtn" type="button" aria-pressed="false" title="Bubbles stay exactly where you drop them">Free place</button>
+      </div>
+      <span class="divider" aria-hidden="true"></span>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+
+    <div class="floating-panel zoom-controls" role="group" aria-label="Zoom">
+      <button class="icon-btn" id="zoomOutBtn" type="button" aria-label="Zoom out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>
+      </button>
+      <span class="readout" id="zoomReadout" aria-live="polite">100%</span>
+      <button class="icon-btn" id="zoomInBtn" type="button" aria-label="Zoom in">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <span class="divider" aria-hidden="true"></span>
+      <button class="icon-btn" id="fitBtn" type="button" aria-label="Fit map to screen" title="Fit to screen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/></svg>
+      </button>
+    </div>
+
+    <div class="hint-badge" id="hintBadge"></div>
+
+    <canvas id="canvas" aria-label="Word bubble map"></canvas>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const canvas = $('canvas');
+    const ctx = canvas.getContext('2d');
+    const generateBtn = $('generateBtn');
+    const mainInput = $('mainWord');
+    const subInput = $('subWords');
+    const hintBadge = $('hintBadge');
+    const sizePanel = $('sizePanel');
+    const sizeReadout = $('sizeReadout');
+    const shrinkBtn = $('shrinkBtn');
+    const growBtn = $('growBtn');
+    const zoomReadout = $('zoomReadout');
+    const zoomInBtn = $('zoomInBtn');
+    const zoomOutBtn = $('zoomOutBtn');
+    const fitBtn = $('fitBtn');
+    const autoModeBtn = $('autoModeBtn');
+    const freeModeBtn = $('freeModeBtn');
+    const themeBtn = $('themeBtn');
+    const mapsBtn = $('mapsBtn');
+    const mapsBtnLabel = $('mapsBtnLabel');
+    const mapsPanel = $('mapsPanel');
+    const mapNameInput = $('mapName');
+    const saveBtn = $('saveBtn');
+    const newMapBtn = $('newMapBtn');
+    const saveStatus = $('saveStatus');
+    const mapList = $('mapList');
+    const exportBtn = $('exportBtn');
+    const importBtn = $('importBtn');
+    const importInput = $('importInput');
+    const toolbar = document.querySelector('.toolbar');
+
+    const MIN_ZOOM = 0.25;
+    const MAX_ZOOM = 3;
+    const MIN_SIZE = 0.6;
+    const MAX_SIZE = 3;
+    const SIZE_STEP = 0.2;
+    const GRID = 24;
+    const LIBRARY_KEY = 'wordBubbleMap.library.v1';
+    const CURRENT_KEY = 'wordBubbleMap.current.v1';
+    const THEME_KEY = 'wordBubbleMap.theme.v1';
+
+    const PALETTES = {
+      light: {
+        edge: '#cbd5e1', edgeActive: '#6366f1',
+        bubble: '#ffffff', bubbleStroke: '#e2e8f0', bubbleActive: '#6366f1',
+        text: '#1e293b', mainText: '#ffffff',
+        shadow: 'rgba(15, 23, 42, 0.08)', mainShadow: 'rgba(79, 70, 229, 0.35)',
+        mainFrom: '#6366f1', mainTo: '#4f46e5'
+      },
+      dark: {
+        edge: '#334155', edgeActive: '#818cf8',
+        bubble: '#1e293b', bubbleStroke: '#334155', bubbleActive: '#818cf8',
+        text: '#e2e8f0', mainText: '#ffffff',
+        shadow: 'rgba(0, 0, 0, 0.45)', mainShadow: 'rgba(99, 102, 241, 0.45)',
+        mainFrom: '#6366f1', mainTo: '#4338ca'
+      }
+    };
+
+    const storage = {
+      get(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw === null ? fallback : JSON.parse(raw);
+        } catch {
+          return fallback;
+        }
+      },
+      set(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch {}
+      }
+    };
+
+    let nodes = [];
+    let edges = [];
+    let nextId = 1;
+    let draggedNode = null;
+    let hoveredNode = null;
+    let selectedNode = null;
+    let pointerDownPos = { x: 0, y: 0 };
+    let pointerCurrentPos = { x: 0, y: 0 };
+    let hasDragged = false;
+    let mode = 'auto';
+    let theme = 'light';
+    let palette = PALETTES.light;
+
+    let maps = [];
+    let currentMapId = null;
+    let saveTimer = null;
+
+    const view = { x: 0, y: 0, scale: 1 };
+    let panStart = null;
+    const activePointers = new Map();
+    let pinch = null;
+
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    /* ---------- Theme ---------- */
+
+    function applyTheme(next) {
+      theme = next;
+      palette = PALETTES[next];
+      document.documentElement.dataset.theme = next;
+      const isDark = next === 'dark';
+      themeBtn.setAttribute('aria-pressed', String(isDark));
+      themeBtn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+      themeBtn.title = isDark ? 'Light mode' : 'Dark mode';
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', isDark ? '#0b1120' : '#f8fafc');
+      storage.set(THEME_KEY, next);
+    }
+
+    /* ---------- View / zoom ---------- */
+
+    function toWorld(sx, sy) {
+      return { x: (sx - view.x) / view.scale, y: (sy - view.y) / view.scale };
+    }
+
+    function toScreen(wx, wy) {
+      return { x: wx * view.scale + view.x, y: wy * view.scale + view.y };
+    }
+
+    function zoomAt(sx, sy, factor) {
+      const next = clamp(view.scale * factor, MIN_ZOOM, MAX_ZOOM);
+      const world = toWorld(sx, sy);
+      view.scale = next;
+      view.x = sx - world.x * next;
+      view.y = sy - world.y * next;
+      updateZoomUI();
+    }
+
+    function zoomFromCenter(factor) {
+      zoomAt(window.innerWidth / 2, window.innerHeight / 2, factor);
+      markDirty();
+    }
+
+    function fitView() {
+      if (nodes.length === 0) return;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      nodes.forEach(n => {
+        minX = Math.min(minX, n.x - n.radius);
+        minY = Math.min(minY, n.y - n.radius);
+        maxX = Math.max(maxX, n.x + n.radius);
+        maxY = Math.max(maxY, n.y + n.radius);
+      });
+      const topInset = toolbar.getBoundingClientRect().bottom + 24;
+      const bottomInset = 90;
+      const sideInset = 40;
+      const availW = window.innerWidth - sideInset * 2;
+      const availH = Math.max(120, window.innerHeight - topInset - bottomInset);
+      const scale = clamp(Math.min(availW / (maxX - minX), availH / (maxY - minY), 1.5), MIN_ZOOM, MAX_ZOOM);
+      view.scale = scale;
+      view.x = sideInset + availW / 2 - ((minX + maxX) / 2) * scale;
+      view.y = topInset + availH / 2 - ((minY + maxY) / 2) * scale;
+      updateZoomUI();
+      markDirty();
+    }
+
+    function updateZoomUI() {
+      zoomReadout.textContent = `${Math.round(view.scale * 100)}%`;
+      zoomInBtn.disabled = view.scale >= MAX_ZOOM - 0.001;
+      zoomOutBtn.disabled = view.scale <= MIN_ZOOM + 0.001;
+      const grid = GRID * view.scale;
+      document.body.style.backgroundSize = `${grid}px ${grid}px`;
+      document.body.style.backgroundPosition = `${view.x}px ${view.y}px`;
+    }
+
+    /* ---------- Nodes ---------- */
+
+    function fontPx(node) {
+      return (node.isMain ? 16 : 14) * node.size;
+    }
+
+    function fontFor(node) {
+      return `${node.isMain ? 700 : 500} ${fontPx(node)}px Inter, sans-serif`;
+    }
+
+    function layoutNode(node) {
+      ctx.font = fontFor(node);
+      const lineHeight = fontPx(node) * 1.3;
+      const words = node.text.split(/\s+/).filter(Boolean);
+      const totalWidth = ctx.measureText(node.text).width;
+      const baseWidth = (node.isMain ? 150 : 130) * node.size;
+      const maxWidth = totalWidth <= baseWidth
+        ? baseWidth
+        : Math.max(baseWidth, Math.sqrt(totalWidth * lineHeight * 2.4));
+
+      const lines = [];
+      let line = '';
+      words.forEach(word => {
+        const candidate = line ? `${line} ${word}` : word;
+        if (line && ctx.measureText(candidate).width > maxWidth) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = candidate;
+        }
+      });
+      if (line) lines.push(line);
+      if (lines.length === 0) lines.push('');
+
+      const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
+      const blockHeight = lines.length * lineHeight;
+      const minRadius = (node.isMain ? 56 : 42) * node.size;
+
+      node.lines = lines;
+      node.lineHeight = lineHeight;
+      node.radius = Math.max(minRadius, Math.hypot(widest / 2, blockHeight / 2) + 14 * node.size);
+    }
+
+    function makeNode(text, x, y, isMain, size = 1, id = nextId++) {
+      const node = { id, text, x, y, vx: 0, vy: 0, isMain, size, radius: 0, lines: [], lineHeight: 0 };
+      layoutNode(node);
+      return node;
+    }
+
+    function setNodeSize(node, size) {
+      node.size = Math.round(clamp(size, MIN_SIZE, MAX_SIZE) * 10) / 10;
+      layoutNode(node);
+      updateSizeUI();
+      markDirty();
+    }
+
+    function findOpenSpot(anchor, radius) {
+      let dist = 0;
+      for (let ring = 0; ring < 10; ring++) {
+        dist = Math.max(190, anchor.radius + radius + 70) + ring * 90;
+        const steps = 12 + ring * 4;
+        const offset = Math.random() * Math.PI * 2;
+        for (let s = 0; s < steps; s++) {
+          const angle = offset + (s / steps) * Math.PI * 2;
+          const x = anchor.x + Math.cos(angle) * dist;
+          const y = anchor.y + Math.sin(angle) * dist;
+          if (nodes.every(n => Math.hypot(n.x - x, n.y - y) > n.radius + radius + 24)) {
+            return { x, y };
+          }
+        }
+      }
+      return { x: anchor.x + dist, y: anchor.y };
+    }
+
+    function parseWords() {
+      const seen = new Set();
+      return subInput.value
+        .split(',')
+        .map(w => w.trim().replace(/\s+/g, ' '))
+        .filter(w => {
+          const key = w.toLowerCase();
+          if (!w || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+    }
+
+    function buildFreshGraph() {
+      const mainText = mainInput.value.trim() || 'Main Topic';
+      const words = parseWords();
+      const center = toWorld(window.innerWidth / 2, window.innerHeight / 2 + 40);
+
+      nextId = 1;
+      const mainNode = makeNode(mainText, center.x, center.y, true);
+      nodes = [mainNode];
+      edges = [];
+
+      const orbitDistance = Math.max(200, words.length * 26);
+      words.forEach((word, i) => {
+        const angle = (i / words.length) * Math.PI * 2 - Math.PI / 2;
+        const node = makeNode(
+          word,
+          center.x + Math.cos(angle) * orbitDistance,
+          center.y + Math.sin(angle) * orbitDistance,
+          false
+        );
+        nodes.push(node);
+        edges.push({ from: mainNode, to: node });
+      });
+      selectNode(null);
+    }
+
+    function updateGraph() {
+      const mainText = mainInput.value.trim() || 'Main Topic';
+      const words = parseWords();
+
+      let mainNode = nodes.find(n => n.isMain);
+      if (!mainNode) {
+        const center = toWorld(window.innerWidth / 2, window.innerHeight / 2 + 40);
+        mainNode = makeNode(mainText, center.x, center.y, true);
+      } else {
+        mainNode.text = mainText;
+        layoutNode(mainNode);
+      }
+
+      const existing = new Map(nodes.filter(n => !n.isMain).map(n => [n.text.toLowerCase(), n]));
+      const kept = [];
+      const added = [];
+
+      words.forEach(word => {
+        const key = word.toLowerCase();
+        const match = existing.get(key);
+        if (match) {
+          match.text = word;
+          layoutNode(match);
+          kept.push(match);
+          existing.delete(key);
+        } else {
+          added.push(word);
+        }
+      });
+
+      nodes = [mainNode, ...kept];
+      edges = edges.filter(e => nodes.includes(e.from) && nodes.includes(e.to));
+
+      added.forEach(word => {
+        const node = makeNode(word, 0, 0, false);
+        const spot = findOpenSpot(mainNode, node.radius);
+        node.x = spot.x;
+        node.y = spot.y;
+        nodes.push(node);
+        edges.push({ from: mainNode, to: node });
+      });
+
+      if (selectedNode && !nodes.includes(selectedNode)) selectNode(null);
+      if (hoveredNode && !nodes.includes(hoveredNode)) hoveredNode = null;
+      markDirty();
+    }
+
+    function toggleEdge(nodeA, nodeB) {
+      if (!nodeA || !nodeB || nodeA === nodeB) return;
+      const existingIndex = edges.findIndex(
+        e => (e.from === nodeA && e.to === nodeB) || (e.from === nodeB && e.to === nodeA)
+      );
+      if (existingIndex !== -1) {
+        edges.splice(existingIndex, 1);
+      } else {
+        edges.push({ from: nodeA, to: nodeB });
+      }
+      markDirty();
+    }
+
+    /* ---------- Selection / hint / mode ---------- */
+
+    function selectNode(node) {
+      selectedNode = node;
+      updateSizeUI();
+      updateHint();
+    }
+
+    function updateSizeUI() {
+      if (!selectedNode) return;
+      sizeReadout.textContent = `${Math.round(selectedNode.size * 100)}%`;
+      shrinkBtn.disabled = selectedNode.size <= MIN_SIZE + 0.001;
+      growBtn.disabled = selectedNode.size >= MAX_SIZE - 0.001;
+    }
+
+    function updateHint() {
+      if (selectedNode) {
+        const name = selectedNode.text.length > 28 ? `${selectedNode.text.slice(0, 27)}…` : selectedNode.text;
+        hintBadge.textContent = `"${name}" selected — resize it, or click another bubble to connect / disconnect`;
+      } else if (mode === 'free') {
+        hintBadge.textContent = 'Free place — bubbles stay exactly where you drop them';
+      } else {
+        hintBadge.textContent = 'Auto-arrange — drag bubbles, scroll to zoom, click two bubbles to connect';
+      }
+    }
+
+    function setMode(next, save = true) {
+      mode = next;
+      autoModeBtn.setAttribute('aria-pressed', String(mode === 'auto'));
+      freeModeBtn.setAttribute('aria-pressed', String(mode === 'free'));
+      nodes.forEach(n => { n.vx = 0; n.vy = 0; });
+      updateHint();
+      if (save) markDirty();
+    }
+
+    function positionSizePanel() {
+      if (!selectedNode) {
+        sizePanel.hidden = true;
+        return;
+      }
+      sizePanel.hidden = false;
+      const top = toScreen(selectedNode.x, selectedNode.y - selectedNode.radius);
+      const toolbarBottom = toolbar.getBoundingClientRect().bottom;
+      if (top.y - 64 < toolbarBottom) {
+        const bottom = toScreen(selectedNode.x, selectedNode.y + selectedNode.radius);
+        sizePanel.classList.add('below');
+        sizePanel.style.left = `${bottom.x}px`;
+        sizePanel.style.top = `${bottom.y + 16}px`;
+      } else {
+        sizePanel.classList.remove('below');
+        sizePanel.style.left = `${top.x}px`;
+        sizePanel.style.top = `${top.y - 16}px`;
+      }
+    }
+
+    /* ---------- Physics & drawing ---------- */
+
+    function updatePhysics() {
+      if (mode !== 'auto' || nodes.length === 0) return;
+
+      edges.forEach(edge => {
+        const a = edge.from;
+        const b = edge.to;
+        const targetDist = Math.max(190, a.radius + b.radius + 70);
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const force = (dist - targetDist) * 0.025;
+        const fx = (dx / dist) * force;
+        const fy = (dy / dist) * force;
+
+        if (a !== draggedNode && !a.isMain) {
+          a.vx += fx;
+          a.vy += fy;
+        }
+        if (b !== draggedNode && !b.isMain) {
+          b.vx -= fx;
+          b.vy -= fy;
+        }
+      });
+
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        if (node === draggedNode || node.isMain) continue;
+
+        for (let j = 0; j < nodes.length; j++) {
+          if (i === j) continue;
+          const other = nodes[j];
+          const rx = node.x - other.x;
+          const ry = node.y - other.y;
+          const rDist = Math.hypot(rx, ry) || 1;
+          const minGap = node.radius + other.radius + 32;
+
+          if (rDist < minGap) {
+            const push = (minGap - rDist) * 0.08;
+            node.vx += (rx / rDist) * push;
+            node.vy += (ry / rDist) * push;
+          }
+        }
+
+        node.vx *= 0.84;
+        node.vy *= 0.84;
+        node.x += node.vx;
+        node.y += node.vy;
+      }
+    }
+
+    function draw() {
+      const dpr = window.devicePixelRatio || 1;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(dpr * view.scale, 0, 0, dpr * view.scale, dpr * view.x, dpr * view.y);
+
+      edges.forEach(edge => {
+        const isHighlighted =
+          edge.from === hoveredNode || edge.to === hoveredNode ||
+          edge.from === selectedNode || edge.to === selectedNode;
+
+        ctx.beginPath();
+        ctx.moveTo(edge.from.x, edge.from.y);
+        ctx.lineTo(edge.to.x, edge.to.y);
+        ctx.strokeStyle = isHighlighted ? palette.edgeActive : palette.edge;
+        ctx.lineWidth = isHighlighted ? 3 : 2;
+        ctx.stroke();
+      });
+
+      if (selectedNode) {
+        const target = hoveredNode && hoveredNode !== selectedNode
+          ? { x: hoveredNode.x, y: hoveredNode.y }
+          : toWorld(pointerCurrentPos.x, pointerCurrentPos.y);
+
+        if (Math.hypot(target.x - selectedNode.x, target.y - selectedNode.y) > selectedNode.radius) {
+          ctx.save();
+          ctx.setLineDash([6, 4]);
+          ctx.beginPath();
+          ctx.moveTo(selectedNode.x, selectedNode.y);
+          ctx.lineTo(target.x, target.y);
+          ctx.strokeStyle = palette.edgeActive;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      nodes.forEach(node => {
+        const isActive = node === draggedNode || node === hoveredNode || node === selectedNode;
+
+        ctx.save();
+        ctx.shadowColor = node.isMain ? palette.mainShadow : palette.shadow;
+        ctx.shadowBlur = (isActive ? 24 : 14) * view.scale;
+        ctx.shadowOffsetY = (isActive ? 8 : 4) * view.scale;
+
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+
+        if (node.isMain) {
+          const grad = ctx.createLinearGradient(
+            node.x - node.radius, node.y - node.radius,
+            node.x + node.radius, node.y + node.radius
+          );
+          grad.addColorStop(0, palette.mainFrom);
+          grad.addColorStop(1, palette.mainTo);
+          ctx.fillStyle = grad;
+          ctx.fill();
+        } else {
+          ctx.fillStyle = palette.bubble;
+          ctx.fill();
+          ctx.shadowColor = 'transparent';
+          ctx.lineWidth = isActive ? 2.5 : 1.5;
+          ctx.strokeStyle = isActive ? palette.bubbleActive : palette.bubbleStroke;
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        if (node === selectedNode) {
+          ctx.save();
+          ctx.setLineDash([5, 3]);
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.radius + 7, 0, Math.PI * 2);
+          ctx.strokeStyle = palette.edgeActive;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        ctx.fillStyle = node.isMain ? palette.mainText : palette.text;
+        ctx.font = fontFor(node);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const startY = node.y - ((node.lines.length - 1) * node.lineHeight) / 2;
+        node.lines.forEach((line, i) => {
+          ctx.fillText(line, node.x, startY + i * node.lineHeight);
+        });
+      });
+
+      updatePhysics();
+      positionSizePanel();
+      requestAnimationFrame(draw);
+    }
+
+    /* ---------- Saving & maps library ---------- */
+
+    function serialize() {
+      return {
+        id: currentMapId,
+        name: mapNameInput.value.trim() || 'Untitled map',
+        mainText: mainInput.value,
+        subText: subInput.value,
+        mode,
+        view: { x: view.x, y: view.y, scale: view.scale },
+        nodes: nodes.map(n => ({
+          id: n.id, text: n.text, isMain: n.isMain, size: n.size,
+          x: Math.round(n.x * 10) / 10, y: Math.round(n.y * 10) / 10
+        })),
+        edges: edges.map(e => [e.from.id, e.to.id]),
+        updatedAt: Date.now()
+      };
+    }
+
+    function setStatus(text) {
+      saveStatus.textContent = text;
+    }
+
+    function saveCurrent() {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      if (!currentMapId) return;
+      const data = serialize();
+      const index = maps.findIndex(m => m.id === data.id);
+      if (index >= 0) maps[index] = data;
+      else maps.unshift(data);
+      storage.set(LIBRARY_KEY, maps);
+      storage.set(CURRENT_KEY, data.id);
+      renderMapList();
+      setStatus('All changes saved');
+    }
+
+    function markDirty() {
+      setStatus('Saving…');
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveCurrent, 500);
+    }
+
+    function updateMapLabel() {
+      const name = mapNameInput.value.trim() || 'Untitled map';
+      mapsBtnLabel.textContent = name;
+    }
+
+    function loadMap(data) {
+      currentMapId = data.id;
+      mapNameInput.value = data.name || 'Untitled map';
+      mainInput.value = data.mainText ?? '';
+      subInput.value = data.subText ?? '';
+      updateMapLabel();
+
+      const byOriginalId = new Map();
+      nextId = 1;
+      nodes = (Array.isArray(data.nodes) ? data.nodes : []).map(raw => {
+        const node = makeNode(
+          String(raw.text ?? ''),
+          Number.isFinite(+raw.x) ? +raw.x : 0,
+          Number.isFinite(+raw.y) ? +raw.y : 0,
+          Boolean(raw.isMain),
+          clamp(Number(raw.size) || 1, MIN_SIZE, MAX_SIZE)
+        );
+        byOriginalId.set(String(raw.id), node);
+        return node;
+      });
+
+      if (!nodes.some(n => n.isMain)) {
+        const center = toWorld(window.innerWidth / 2, window.innerHeight / 2 + 40);
+        nodes.unshift(makeNode(mainInput.value.trim() || 'Main Topic', center.x, center.y, true));
+      }
+
+      edges = (Array.isArray(data.edges) ? data.edges : [])
+        .map(([a, b]) => ({ from: byOriginalId.get(String(a)), to: byOriginalId.get(String(b)) }))
+        .filter(e => e.from && e.to && e.from !== e.to);
+
+      draggedNode = null;
+      hoveredNode = null;
+      selectNode(null);
+      setMode(data.mode === 'free' ? 'free' : 'auto', false);
+
+      if (data.view && Number.isFinite(data.view.scale)) {
+        view.x = data.view.x;
+        view.y = data.view.y;
+        view.scale = clamp(data.view.scale, MIN_ZOOM, MAX_ZOOM);
+        updateZoomUI();
+      } else {
+        fitView();
+      }
+      setStatus('All changes saved');
+    }
+
+    function createNewMap() {
+      if (currentMapId) saveCurrent();
+      currentMapId = uid();
+      mapNameInput.value = `Untitled map ${maps.length + 1}`;
+      mainInput.value = 'Main Topic';
+      subInput.value = '';
+      updateMapLabel();
+      view.x = 0;
+      view.y = 0;
+      view.scale = 1;
+      updateZoomUI();
+      buildFreshGraph();
+      setMode('auto', false);
+      saveCurrent();
+    }
+
+    function openMap(id) {
+      if (id === currentMapId) return;
+      saveCurrent();
+      const data = maps.find(m => m.id === id);
+      if (!data) return;
+      loadMap(data);
+      storage.set(CURRENT_KEY, id);
+      renderMapList();
+      closeMapsPanel();
+    }
+
+    function deleteMap(id) {
+      maps = maps.filter(m => m.id !== id);
+      storage.set(LIBRARY_KEY, maps);
+      if (id === currentMapId) {
+        currentMapId = null;
+        if (maps.length > 0) {
+          loadMap(maps[0]);
+          storage.set(CURRENT_KEY, maps[0].id);
+        } else {
+          createNewMap();
+        }
+      }
+      renderMapList();
+    }
+
+    function formatDate(ts) {
+      try {
+        return new Date(ts).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      } catch {
+        return '';
+      }
+    }
+
+    function renderMapList() {
+      mapList.replaceChildren();
+      const sorted = [...maps].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+      if (sorted.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'empty-list';
+        empty.textContent = 'No saved maps yet.';
+        mapList.append(empty);
+        return;
+      }
+
+      sorted.forEach(map => {
+        const isCurrent = map.id === currentMapId;
+        const item = document.createElement('li');
+        item.className = `map-item${isCurrent ? ' current' : ''}`;
+
+        const open = document.createElement('button');
+        open.type = 'button';
+        open.className = 'map-open';
+        if (isCurrent) open.setAttribute('aria-current', 'true');
+
+        const name = document.createElement('span');
+        name.className = 'map-name';
+        name.textContent = map.name || 'Untitled map';
+
+        const meta = document.createElement('span');
+        meta.className = 'map-meta';
+        const count = Array.isArray(map.nodes) ? map.nodes.length : 0;
+        meta.textContent = `${isCurrent ? 'Open now · ' : ''}${count} bubble${count === 1 ? '' : 's'} · ${formatDate(map.updatedAt)}`;
+
+        open.append(name, meta);
+        open.addEventListener('click', () => openMap(map.id));
+
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'icon-btn danger';
+        del.setAttribute('aria-label', `Delete ${map.name || 'Untitled map'}`);
+        del.title = 'Delete map';
+        del.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
+        del.addEventListener('click', () => deleteMap(map.id));
+
+        item.append(open, del);
+        mapList.append(item);
+      });
+    }
+
+    function openMapsPanel() {
+      saveCurrent();
+      mapsPanel.hidden = false;
+      mapsBtn.setAttribute('aria-expanded', 'true');
+      renderMapList();
+    }
+
+    function closeMapsPanel() {
+      mapsPanel.hidden = true;
+      mapsBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function exportMap() {
+      saveCurrent();
+      const data = serialize();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${data.name.replace(/[^\w\- ]+/g, '').trim() || 'bubble-map'}.json`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function importMap(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(String(reader.result));
+          if (!data || !Array.isArray(data.nodes)) throw new Error('Invalid map');
+          saveCurrent();
+          data.id = uid();
+          data.name = String(data.name || file.name.replace(/\.json$/i, '') || 'Imported map').slice(0, 60);
+          data.updatedAt = Date.now();
+          maps.unshift(data);
+          loadMap(data);
+          saveCurrent();
+          setStatus('Map imported');
+        } catch {
+          setStatus('That file isn\u2019t a valid map');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    /* ---------- Pointer input ---------- */
+
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function nodeAtScreen(pos) {
+      const w = toWorld(pos.x, pos.y);
+      return [...nodes].reverse().find(n => Math.hypot(n.x - w.x, n.y - w.y) <= n.radius);
+    }
+
+    function startPinch() {
+      const [a, b] = [...activePointers.values()];
+      pinch = {
+        dist: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+        mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
+      };
+      draggedNode = null;
+      panStart = null;
+      hasDragged = true;
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+      const pos = getPointerPos(e);
+      activePointers.set(e.pointerId, pos);
+      canvas.setPointerCapture(e.pointerId);
+
+      if (activePointers.size === 2) {
+        startPinch();
+        return;
+      }
+      if (activePointers.size > 2) return;
+
+      pointerDownPos = pos;
+      pointerCurrentPos = pos;
+      hasDragged = false;
+
+      const clickedNode = nodeAtScreen(pos);
+      if (clickedNode) {
+        draggedNode = clickedNode;
+        canvas.style.cursor = 'grabbing';
+      } else {
+        panStart = { x: pos.x, y: pos.y, viewX: view.x, viewY: view.y };
+      }
+    });
+
+    canvas.addEventListener('pointermove', e => {
+      const pos = getPointerPos(e);
+      pointerCurrentPos = pos;
+
+      if (activePointers.has(e.pointerId)) {
+        activePointers.set(e.pointerId, pos);
+      }
+
+      if (pinch && activePointers.size >= 2) {
+        const [a, b] = [...activePointers.values()];
+        const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+        const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        view.x += mid.x - pinch.mid.x;
+        view.y += mid.y - pinch.mid.y;
+        zoomAt(mid.x, mid.y, dist / pinch.dist);
+        pinch = { dist, mid };
+        return;
+      }
+
+      if ((draggedNode || panStart) && Math.hypot(pos.x - pointerDownPos.x, pos.y - pointerDownPos.y) > 5) {
+        hasDragged = true;
+      }
+
+      if (draggedNode) {
+        if (!hasDragged) return;
+        const w = toWorld(pos.x, pos.y);
+        draggedNode.x = w.x;
+        draggedNode.y = w.y;
+        draggedNode.vx = 0;
+        draggedNode.vy = 0;
+        return;
+      }
+
+      if (panStart) {
+        view.x = panStart.viewX + (pos.x - panStart.x);
+        view.y = panStart.viewY + (pos.y - panStart.y);
+        updateZoomUI();
+        if (hasDragged) canvas.style.cursor = 'grabbing';
+        return;
+      }
+
+      hoveredNode = nodeAtScreen(pos);
+      canvas.style.cursor = hoveredNode ? 'pointer' : 'default';
+    });
+
+    function endPointer(e) {
+      if (!activePointers.delete(e.pointerId)) return;
+
+      if (pinch) {
+        if (activePointers.size < 2) pinch = null;
+        if (activePointers.size === 0) {
+          draggedNode = null;
+          panStart = null;
+          markDirty();
+        }
+        return;
+      }
+
+      const pos = getPointerPos(e);
+
+      if (!hasDragged && e.type === 'pointerup') {
+        const clickedNode = nodeAtScreen(pos);
+        if (clickedNode) {
+          if (!selectedNode) {
+            selectNode(clickedNode);
+          } else if (selectedNode === clickedNode) {
+            selectNode(null);
+          } else {
+            toggleEdge(selectedNode, clickedNode);
+            selectNode(null);
+          }
+        } else {
+          selectNode(null);
+        }
+      } else if (hasDragged) {
+        markDirty();
+      }
+
+      draggedNode = null;
+      panStart = null;
+      hoveredNode = nodeAtScreen(pos);
+      canvas.style.cursor = hoveredNode ? 'pointer' : 'default';
+    }
+
+    canvas.addEventListener('pointerup', endPointer);
+    canvas.addEventListener('pointercancel', endPointer);
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      const pos = getPointerPos(e);
+      const target = nodeAtScreen(pos);
+      if (e.altKey && target) {
+        setNodeSize(target, target.size * Math.exp(-e.deltaY * 0.002));
+        return;
+      }
+      zoomAt(pos.x, pos.y, Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)));
+      markDirty();
+    }, { passive: false });
+
+    /* ---------- Controls ---------- */
+
+    zoomInBtn.addEventListener('click', () => zoomFromCenter(1.2));
+    zoomOutBtn.addEventListener('click', () => zoomFromCenter(1 / 1.2));
+    fitBtn.addEventListener('click', fitView);
+
+    growBtn.addEventListener('click', () => {
+      if (selectedNode) setNodeSize(selectedNode, selectedNode.size + SIZE_STEP);
+    });
+    shrinkBtn.addEventListener('click', () => {
+      if (selectedNode) setNodeSize(selectedNode, selectedNode.size - SIZE_STEP);
+    });
+
+    autoModeBtn.addEventListener('click', () => setMode('auto'));
+    freeModeBtn.addEventListener('click', () => setMode('free'));
+    themeBtn.addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
+
+    mapsBtn.addEventListener('click', () => {
+      if (mapsPanel.hidden) openMapsPanel();
+      else closeMapsPanel();
+    });
+
+    document.addEventListener('pointerdown', e => {
+      if (!mapsPanel.hidden && !mapsPanel.contains(e.target) && !mapsBtn.contains(e.target)) {
+        closeMapsPanel();
+      }
+    });
+
+    mapNameInput.addEventListener('input', () => {
+      updateMapLabel();
+      markDirty();
+    });
+
+    saveBtn.addEventListener('click', () => {
+      saveCurrent();
+      setStatus('Saved');
+    });
+
+    newMapBtn.addEventListener('click', () => {
+      createNewMap();
+      closeMapsPanel();
+      mainInput.focus();
+      mainInput.select();
+    });
+
+    exportBtn.addEventListener('click', exportMap);
+    importBtn.addEventListener('click', () => importInput.click());
+    importInput.addEventListener('change', () => {
+      const file = importInput.files && importInput.files[0];
+      if (file) importMap(file);
+      importInput.value = '';
+    });
+
+    generateBtn.addEventListener('click', updateGraph);
+    const onEnter = e => {
+      if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) updateGraph();
+    };
+    mainInput.addEventListener('keydown', onEnter);
+    subInput.addEventListener('keydown', onEnter);
+    mainInput.addEventListener('input', markDirty);
+    subInput.addEventListener('input', markDirty);
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (!mapsPanel.hidden) {
+          closeMapsPanel();
+          mapsBtn.focus();
+        } else {
+          selectNode(null);
+        }
+        return;
+      }
+      if (e.target instanceof HTMLInputElement) return;
+      if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        if (selectedNode) setNodeSize(selectedNode, selectedNode.size + SIZE_STEP);
+        else zoomFromCenter(1.2);
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        if (selectedNode) setNodeSize(selectedNode, selectedNode.size - SIZE_STEP);
+        else zoomFromCenter(1 / 1.2);
+      } else if (e.key === '0') {
+        fitView();
+      }
+    });
+
+    window.addEventListener('pagehide', saveCurrent);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') saveCurrent();
+    });
+
+    /* ---------- Start ---------- */
+
+    const storedTheme = storage.get(THEME_KEY, null);
+    applyTheme(storedTheme === 'dark' || storedTheme === 'light'
+      ? storedTheme
+      : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+
+    maps = storage.get(LIBRARY_KEY, []);
+    if (!Array.isArray(maps)) maps = [];
+    const lastOpen = maps.find(m => m.id === storage.get(CURRENT_KEY, null)) || maps[0];
+
+    updateZoomUI();
+    if (lastOpen) {
+      loadMap(lastOpen);
+    } else {
+      currentMapId = uid();
+      mapNameInput.value = 'Ocean';
+      mainInput.value = 'Ocean';
+      subInput.value = 'Waves, Sharks, Coral Reef, Deep Sea, Blue, Saltwater, The quiet creatures that live where sunlight never reaches';
+      updateMapLabel();
+      buildFreshGraph();
+      setMode('auto', false);
+      saveCurrent();
+    }
+    renderMapList();
+    draw();
+
+    document.fonts.ready.then(() => {
+      nodes.forEach(layoutNode);
+    });
+  </script>
+</body>
+</html>
