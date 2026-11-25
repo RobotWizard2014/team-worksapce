@@ -76,7 +76,7 @@ iframe{width:100%;height:100%;border:none;flex:1;background:#fff}
 <section id="v-group" class="view">
 <div class="bar">
 <b id="t6" style="margin-inline-end:auto">💬 Team Group Chat</b>
-<input id="meName" placeholder="Your name..." style="width:130px" onchange="localStorage.setItem('ws_me',this.value)">
+<input id="meName" placeholder="Your name..." style="width:130px" onchange="localStorage.setItem('ws_me',this.value);drawChat()">
 <input id="rm" value="team-1" style="width:95px" onchange="loadChat()">
 </div>
 <div id="chatBox" class="chat-box"></div>
@@ -88,7 +88,7 @@ iframe{width:100%;height:100%;border:none;flex:1;background:#fff}
 </main>
 <script>
 const $=id=>document.getElementById(id);
-const DB="https://firebasedatabase.app";
+const DB="https://team-workspace-b4599-default-rtdb.europe-west1.firebasedatabase.app";
 $("meName").value=localStorage.getItem("ws_me")||"";
 let lang=localStorage.getItem("ws_lang")||"en";
 function toggleLang(){lang=lang==="en"?"he":"en";localStorage.setItem("ws_lang",lang);applyLang()}
@@ -132,8 +132,7 @@ if(last)fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json",{method:"POS
 async function loadChat(){
 try{let r=await(await fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json")).json();if(r){msgs=Array.isArray(r)?r:Object.values(r);drawChat()}}catch(e){}
 }
-
-setInterval(loadChat,3000);
+setInterval(loadChat,2500);
 function who(){
 let n=$("meName").value.trim();
 if(!n){n=prompt(lang==="he"?"הכנס שם:":"Your name:")||"User";$("meName").value=n;localStorage.setItem("ws_me",n)}
