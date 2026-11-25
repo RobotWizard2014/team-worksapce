@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Team Workspace</title>
-<script src="https://jsdelivr.net"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,sans-serif;background:#0f172a;color:#f8fafc;height:100vh;display:flex}
@@ -79,7 +78,7 @@ iframe{width:100%;height:100%;border:none;flex:1;background:#fff}
 <b id="t6" style="margin-inline-end:auto">💬 Team Group Chat</b>
 <span id="syncDot" style="font-size:12px;color:#10b981">● Live</span>
 <input id="meName" placeholder="Your name..." style="width:130px" onchange="localStorage.setItem('ws_me',this.value);drawChat()">
-<input id="rm" value="team-1" style="width:95px" onchange="joinRoom()">
+<input id="rm" value="team-1" style="width:95px" onchange="msgs=[];drawChat();loadChat()">
 </div>
 <div id="chatBox" class="chat-box"></div>
 <div class="chat-input">
@@ -90,6 +89,10 @@ iframe{width:100%;height:100%;border:none;flex:1;background:#fff}
 </main>
 <script>
 const $=id=>document.getElementById(id);
+
+// 👇👇👇 YOUR EXACT FIREBASE LINK IS RIGHT HERE ON THIS LINE 👇👇👇
+const DB="https://team-workspace-b4599-default-rtdb.europe-west1.firebasedatabase.app/";
+
 $("meName").value=localStorage.getItem("ws_me")||"";
 let lang=localStorage.getItem("ws_lang")||"en";
 function toggleLang(){lang=lang==="en"?"he":"en";localStorage.setItem("ws_lang",lang);applyLang()}
@@ -124,22 +127,27 @@ try{await py.runPythonAsync($("pc").value);$("po").textContent=py.runPython("sys
 catch(e){$("po").textContent=e}
 }
 function openDoc(u){u=u||$("url").value.trim();if(u)window.open(u.startsWith("http")?u:"https://"+u,"_blank","width=1100,height=750")}
-const gun=Gun(["https://herokuapp.com","https://wallie.io"]);
-let roomNode=null,msgs={};
-function joinRoom(){
-msgs={};drawChat();
-const r="robotwizard2014_ws_chat_"+($("rm").value.trim()||"team-1");
-roomNode=gun.get(r);
-roomNode.map().on((val,id)=>{
-if(val&&typeof val==="string"){try{msgs[id]=JSON.parse(val);drawChat()}catch(e){}}
-});
+let msgs=[];
+async function pushMsg(m){
+msgs.push(m);drawChat();
+try{
+const res=await fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(m)});
+if(!res.ok)throw new Error(res.status);
+$("syncDot").textContent="● Live";$("syncDot").style.color="#10b981";
+loadChat();
+}catch(e){$("syncDot").textContent="● "+e.message;$("syncDot").style.color="#ef4444"}
 }
-function pushMsg(m){
-const id=Date.now()+"_"+Math.random().toString(36).slice(2,7);
-m.id=id;m.tsNum=Date.now();
-msgs[id]=m;drawChat();
-if(roomNode)roomNode.get(id).put(JSON.stringify(m));
+async function loadChat(){
+try{
+const res=await fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json?t="+Date.now(),{cache:"no-store"});
+if(!res.ok)throw new Error(res.status);
+const r=await res.json();
+msgs=r?(Array.isArray(r)?r:Object.values(r)):[];
+drawChat();
+$("syncDot").textContent="● Live";$("syncDot").style.color="#10b981";
+}catch(e){$("syncDot").textContent="● "+e.message;$("syncDot").style.color="#ef4444"}
 }
+setInterval(loadChat,2000);
 function who(){
 let n=$("meName").value.trim();
 if(!n){n=prompt(lang==="he"?"הכנס שם:":"Your name:")||"User";$("meName").value=n;localStorage.setItem("ws_me",n)}
@@ -161,7 +169,7 @@ function drawChat(){
 let box=$("chatBox"),me=$("meName").value.trim();
 const atBottom=box.scrollHeight-box.scrollTop<=box.clientHeight+60;
 box.innerHTML="";
-Object.values(msgs).sort((a,b)=>(a.tsNum||0)-(b.tsNum||0)).forEach(m=>{
+msgs.forEach(m=>{
 let d=document.createElement("div");d.className="msg"+(m.u===me?" me":"");
 d.innerHTML=`<small style="color:#94a3b8"><b>${m.u}</b> • ${m.ts||""}</small><div>${m.t}</div>`;
 if(m.item){
@@ -179,7 +187,7 @@ box.appendChild(d);
 });
 if(atBottom)box.scrollTop=box.scrollHeight;
 }
-joinRoom();
+loadChat();
 </script>
 </body>
 </html>
