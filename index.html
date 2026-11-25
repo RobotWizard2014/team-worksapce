@@ -161,7 +161,9 @@ const raw=typeof content==="string"?content:JSON.stringify(content);
 pushMsg({u:who(),t:"Shared "+type+": "+label,item:{type,label,raw},ts:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
 document.querySelector("[data-t=group]").click();
 }
-window.addEventListener("message",e=>{if(e.data&&e.data.type==="SHARE_MAP")sendItem("Map",e.data.map.name||"Bubble Map",e.data.map)});
+let lastShare=0;
+window.addEventListener("message",e=>{if(e.data&&e.data.type==="SHARE_MAP"&&Date.now()-lastShare>2000){lastShare=Date.now();sendItem("Map",e.data.map.name||"Bubble Map",e.data.map)}});
+
 function drawChat(){
 let box=$("chatBox"),me=$("meName").value.trim();
 const atBottom=box.scrollHeight-box.scrollTop<=box.clientHeight+60;
