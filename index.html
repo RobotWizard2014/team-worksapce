@@ -79,6 +79,7 @@ iframe{width:100%;height:100%;border:none;flex:1;background:#fff}
 <span id="syncDot" style="font-size:12px;color:#10b981">● Connecting...</span>
 <input id="meName" placeholder="Your name..." style="width:130px" onchange="localStorage.setItem('ws_me',this.value);drawChat()">
 <input id="rm" value="team-1" style="width:95px" onchange="msgMap={};drawChat();loadChat()">
+<button class="btn sec" onclick="clearChat()" title="Clear Chat">🗑️</button>
 </div>
 <div id="chatBox" class="chat-box"></div>
 <div class="chat-input">
@@ -140,9 +141,15 @@ try{
 const res=await fetch(DB+"/chat/"+encodeURIComponent($("rm").value.trim()||"team-1")+".json?t="+Date.now(),{cache:"no-store"});
 if(!res.ok){const err=await res.text();throw new Error(res.status+" "+err)}
 const r=await res.json();
-if(r&&typeof r==="object"){Object.assign(msgMap,r);drawChat()}
+msgMap=(r&&typeof r==="object")?r:{};
+drawChat();
 $("syncDot").textContent="● Live";$("syncDot").style.color="#10b981";
 }catch(e){$("syncDot").textContent="● Err: "+e.message;$("syncDot").style.color="#ef4444"}
+}
+function clearChat(){
+if(!confirm(lang==="he"?"למחוק את כל הצ׳אט?":"Clear all messages in this room?"))return;
+msgMap={};drawChat();
+fetch(DB+"/chat/"+encodeURIComponent($("rm").value.trim()||"team-1")+".json",{method:"DELETE"}).catch(()=>{});
 }
 setInterval(loadChat,2000);
 function who(){
@@ -161,9 +168,8 @@ const raw=typeof content==="string"?content:JSON.stringify(content);
 pushMsg({u:who(),t:"Shared "+type+": "+label,item:{type,label,raw},ts:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
 document.querySelector("[data-t=group]").click();
 }
-let lastShare=0;
-window.addEventListener("message",e=>{if(e.data&&e.data.type==="SHARE_MAP"&&Date.now()-lastShare>2000){lastShare=Date.now();sendItem("Map",e.data.map.name||"Bubble Map",e.data.map)}});
-
+let shareLock=0;
+window.addEventListener("message",e=>{if(!e.data||e.data.type!=="SHARE_MAP")return;const now=Date.now();if(now-shareLock<8000)return;shareLock=now;sendItem("Map",e.data.map.name||"Bubble Map",e.data.map)});
 function drawChat(){
 let box=$("chatBox"),me=$("meName").value.trim();
 const atBottom=box.scrollHeight-box.scrollTop<=box.clientHeight+60;
@@ -178,6 +184,7 @@ const val=m.item.raw!==undefined?m.item.raw:m.item.content;
 if(m.item.type==="Map"){const obj=typeof val==="string"?JSON.parse(val):val;document.querySelector("[data-t=bubble]").click();$("bf").contentWindow.postMessage({type:"LOAD_MAP",map:obj},"*")}
 else if(m.item.type==="Doc")openDoc(val);
 else if(m.item.type==="HTML"){$("hc").value=val;$("hp").srcdoc=val;document.querySelector("[data-t=html]").click()}
+
 else{$("pc").value=val;initPy();document.querySelector("[data-t=py]").click()}
 };
 d.appendChild(b);
@@ -187,6 +194,3 @@ box.appendChild(d);
 if(atBottom)box.scrollTop=box.scrollHeight;
 }
 loadChat();
-</script>
-</body>
-</html>
