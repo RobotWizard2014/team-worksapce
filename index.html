@@ -1,376 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Team Workspace</title>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
-  <style>
-    :root {
-      --bg: #0f172a; --sidebar: #1e293b; --panel: #111827; --card: #1f2937;
-      --border: #334155; --text: #f8fafc; --muted: #94a3b8; --accent: #6366f1;
-      --todo: #64748b; --working: #f59e0b; --done: #10b981;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
-    .sidebar { width: 235px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px; gap: 8px; flex-shrink: 0; }
-    .brand { font-size: 17px; font-weight: 700; padding: 8px 12px 16px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
-    .nav-btn { width: 100%; padding: 12px 14px; background: transparent; color: var(--muted); border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: left; }
-    .nav-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
-    .nav-btn.active { background: var(--accent); color: #fff; }
-    .room-pill { margin-top: auto; background: var(--card); border: 1px solid var(--border); padding: 12px; border-radius: 10px; font-size: 12px; display: flex; flex-direction: column; gap: 8px; }
-    .main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-    .view { display: none; flex: 1; height: 100%; flex-direction: column; overflow: hidden; }
-    .view.active { display: flex; }
-    .topbar { height: 56px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 10px; flex-shrink: 0; }
-    .topbar h2 { font-size: 15px; margin-right: auto; }
-    input, select, textarea { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-family: inherit; }
-    .btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .btn.secondary { background: var(--card); border: 1px solid var(--border); }
-    .btn.success { background: var(--done); color: #052e16; }
-    iframe { width: 100%; height: 100%; border: none; flex: 1; background: #fff; }
-    .split { display: flex; flex: 1; }
-    .pane { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
-    .pane-header { padding: 8px 14px; background: #1e293b; font-size: 12px; font-weight: 700; color: var(--muted); border-bottom: 1px solid var(--border); }
-    .code-area { flex: 1; width: 100%; border: none; background: #0b1120; color: #e2e8f0; font-family: monospace; font-size: 14px; padding: 16px; resize: none; }
-    .terminal-out { flex: 1; background: #020617; color: #34d399; font-family: monospace; font-size: 14px; padding: 16px; overflow-y: auto; white-space: pre-wrap; }
-
-    /* Docs Launcher Grid */
-    .docs-hub { padding: 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; overflow-y: auto; }
-    .doc-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-    .doc-card h3 { font-size: 16px; }
-    .doc-card p { font-size: 13px; color: var(--muted); line-height: 1.5; }
-
-    /* Monday / ClickUp Board */
-    .board-wrap { padding: 16px; display: flex; flex-direction: column; gap: 16px; flex: 1; overflow-y: auto; }
-    .new-task-bar { display: flex; gap: 8px; background: var(--card); padding: 12px; border-radius: 12px; border: 1px solid var(--border); flex-wrap: wrap; }
-    .kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; flex: 1; min-height: 300px; }
-    .col { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-    .col-header { font-size: 13px; font-weight: 700; padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; }
-    .col-todo .col-header { background: rgba(100,116,139,0.25); border-left: 4px solid var(--todo); }
-    .col-working .col-header { background: rgba(245,158,11,0.2); border-left: 4px solid var(--working); }
-    .col-done .col-header { background: rgba(16,185,129,0.2); border-left: 4px solid var(--done); }
-    .task-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-    .task-title { font-size: 14px; font-weight: 600; }
-    .task-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 11px; }
-    .pill { padding: 3px 8px; border-radius: 999px; font-weight: 700; }
-    .prio-High { background: rgba(239,68,68,0.25); color: #fca5a5; }
-    .prio-Medium { background: rgba(245,158,11,0.25); color: #fcd34d; }
-    .prio-Low { background: rgba(99,102,241,0.25); color: #a5b4fc; }
-    .task-actions { display: flex; gap: 6px; margin-top: 4px; }
-    .mini-btn { padding: 4px 8px; font-size: 11px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; }
-    .shared-bar { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
-    .shared-items { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-  </style>
+<meta charset="UTF-8">
+<title>Team Workspace</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,sans-serif;background:#0f172a;color:#f8fafc;height:100vh;display:flex;overflow:hidden}
+.side{width:220px;background:#1e293b;border-inline-end:1px solid #334155;padding:16px 12px;display:flex;flex-direction:column;gap:8px}
+.nav{padding:12px;background:transparent;color:#94a3b8;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;text-align:start}
+.nav.active{background:#6366f1;color:#fff}
+.main{flex:1;display:flex;flex-direction:column;height:100vh}
+.view{display:none;flex:1;flex-direction:column;height:100%}
+.view.active{display:flex}
+.bar{height:54px;background:#111827;border-bottom:1px solid #334155;display:flex;align-items:center;padding:0 16px;gap:10px}
+input,textarea{background:#1f2937;border:1px solid #334155;color:#fff;border-radius:8px;padding:8px 12px;font-size:13px}
+.btn{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer}
+.btn.sec{background:#1f2937;border:1px solid #334155}
+.btn.ok{background:#10b981;color:#052e16}
+iframe{width:100%;height:100%;border:none;flex:1;background:#fff}
+.split{display:flex;flex:1}
+.pane{flex:1;display:flex;flex-direction:column;border-inline-end:1px solid #334155}
+.code{flex:1;background:#0b1120;color:#e2e8f0;font-family:monospace;font-size:14px;padding:16px;border:none;resize:none}
+.out{flex:1;background:#020617;color:#34d399;font-family:monospace;font-size:14px;padding:16px;white-space:pre-wrap;overflow:auto}
+.chat-box{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:72%;background:#1e293b;border:1px solid #334155;padding:10px 14px;border-radius:14px;display:flex;flex-direction:column;gap:6px;align-self:flex-start}
+.msg.me{background:#312e81;border-color:#6366f1;align-self:flex-end}
+.msg-meta{font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;gap:12px}
+.msg-text{font-size:14px;line-height:1.4;word-break:break-word}
+.chat-input{padding:14px 16px;background:#111827;border-top:1px solid #334155;display:flex;gap:10px}
+</style>
 </head>
 <body>
-  <aside class="sidebar">
-    <div class="brand">Team Workspace</div>
-    <button class="nav-btn active" data-tab="bubble">🫧 Word Bubble Map</button>
-    <button class="nav-btn" data-tab="docs">📄 Google Docs & Sites</button>
-    <button class="nav-btn" data-tab="html">🌐 HTML Studio</button>
-    <button class="nav-btn" data-tab="python">🐍 Python Terminal</button>
-    <button class="nav-btn" data-tab="group">📋 Group Board</button>
+<aside class="side">
+<h3 style="padding:8px">Team Workspace</h3>
+<button class="nav active" data-t="bubble">🫧 Bubble Map</button>
+<button class="nav" data-t="docs">📄 Google Docs</button>
+<button class="nav" data-t="html">🌐 HTML Studio</button>
+<button class="nav" data-t="py">🐍 Python Terminal</button>
+<button class="nav" data-t="group">💬 Group Chat</button>
+<button id="langBtn" class="btn sec" style="margin-top:auto" onclick="toggleLang()">🌐 עברית</button><button class="btn sec" onclick="alert('Chrome/Edge: Click Install icon in address bar.\nSafari Mac: File -> Add to Dock.')">⬇ Install App</button>
+</aside>
+<main class="main">
+<section id="v-bubble" class="view active"><iframe id="bf" src="bubble-map.html"></iframe></section>
+<section id="v-docs" class="view">
+<div class="bar"><input id="url" placeholder="Paste Google Doc or site URL..." style="width:300px"><button class="btn" onclick="openDoc()">Open</button><button class="btn sec" onclick="sendItem('Doc',url.value.slice(0,28),url.value)">Send to Chat</button></div>
+<div style="padding:24px;display:flex;gap:12px"><button class="btn" onclick="window.open('https://google.com','_blank','width=1100,height=750')">Open Google Docs</button><button class="btn" onclick="window.open('https://google.com','_blank','width=1100,height=750')">Open Google Drive</button></div>
+</section>
+<section id="v-html" class="view">
+<div class="bar"><b style="margin-inline-end:auto">HTML Studio</b><button class="btn" onclick="sendItem('HTML','HTML Code',hc.value)">Send to Chat</button></div>
+<div class="split"><div class="pane"><textarea id="hc" class="code" oninput="hp.srcdoc=this.value"><h1>Hello Team!</h1></textarea></div><div class="pane"><iframe id="hp"></iframe></div></div>
+</section>
+<section id="v-py" class="view">
+<div class="bar"><b style="margin-inline-end:auto">Python Terminal</b><span id="ps">Ready</span><button class="btn ok" onclick="runPy()">▶ Run</button><button class="btn" onclick="sendItem('Python','Python Script',pc.value)">Send to Chat</button></div>
+<div class="split"><div class="pane"><textarea id="pc" class="code">print("Hello Team!")</textarea></div><div class="pane"><div id="po" class="out">Click Run...</div></div></div>
+</section>
+<section id="v-group" class="view">
+<div class="bar">
+<b style="margin-inline-end:auto">💬 Team Group Chat</b>
+<input id="meName" placeholder="Your name..." style="width:130px" onchange="localStorage.setItem('ws_me',this.value)">
+<input id="rm" value="team-1" placeholder="Room" style="width:95px" onchange="loadChat()">
+</div>
+<div id="chatBox" class="chat-box"></div>
+<div class="chat-input">
+<input id="chatTxt" placeholder="Type a message to your team..." style="flex:1" onkeydown="if(event.key==='Enter')sendMsg()">
+<button class="btn" onclick="sendMsg()">Send</button>
+</div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const DB="https://firebasedatabase.app";
+$("meName").value=localStorage.getItem("ws_me")||"";
+let py=null,pyL=false;
+function initPy(){if(py||pyL)return;pyL=true;$("ps").textContent="Loading...";let s=document.createElement("script");s.src="https://jsdelivr.net";s.onload=()=>loadPyodide().then(p=>{py=p;$("ps").textContent="Ready"});document.head.appendChild(s)}
+document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav,.view").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("v-"+b.dataset.t).classList.add("active");if(b.dataset.t==="py")initPy()});
+$("hp").srcdoc=$("hc").value;
+async function runPy(){if(!py){initPy();return}py.runPython("import sys,io\nsys.stdout=io.StringIO()");try{await py.runPythonAsync($("pc").value);$("po").textContent=py.runPython("sys.stdout.getvalue()")||"Done"}catch(e){$("po").textContent=e}}
+function openDoc(u){u=u||$("url").value.trim();if(u)window.open(u.startsWith("http")?u:"https://"+u,"_blank","width=1100,height=750")}
+let msgs=[];
+async function pushChat(){localStorage.setItem("ws_chat_"+$("rm").value,JSON.stringify(msgs));drawChat();await fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json",{method:"PUT",body:JSON.stringify(msgs)})}
+async function loadChat(){try{let r=await(await fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json")).json();if(Array.isArray(r)){msgs=r;drawChat()}}catch(e){}}
+setInterval(loadChat,3000);
+function who(){let n=$("meName").value.trim();if(!n){n=prompt("Enter your name for the chat:")||"Teammate";$("meName").value=n;localStorage.setItem("ws_me",n)}return n}
+function sendMsg(){let t=$("chatTxt").value.trim();if(!t)return;msgs.push({u:who(),t:t,ts:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});$("chatTxt").value="";pushChat()}
+function sendItem(type,label,content){if(!content)return;msgs.push({u:who(),t:"Shared a "+type+": "+label,item:{type,label,content},ts:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});pushChat();document.querySelector("[data-t=group]").click()}
+window.addEventListener("message",e=>{if(e.data&&e.data.type==="SHARE_MAP")sendItem("Map",e.data.map.name||"Bubble Map",e.data.map)});
+function drawChat(){let box=$("chatBox"),me=$("meName").value.trim();box.innerHTML="";msgs.forEach((m,i)=>{let d=document.createElement("div");d.className="msg"+(m.u===me?" me":"");d.innerHTML=`<div class="msg-meta"><b>${m.u}</b><span>${m.ts||""}</span></div><div class="msg-text">${m.t}</div>`;if(m.item){let b=document.createElement("button");b.className="btn ok";b.style.marginTop="4px";b.textContent="Open "+m.item.type;b.onclick=()=>{if(m.item.type==="Map"){document.querySelector("[data-t=bubble]").click();$("bf").contentWindow.postMessage({type:"LOAD_MAP",map:m.item.content},"*")}else if(m.item.type==="Doc")openDoc(m.item.content);else if(m.item.type==="HTML"){$("hc").value=m.item.content;$("hp").srcdoc=m.item.content;document.querySelector("[data-t=html]").click()}else{$("pc").value=m.item.content;initPy();document.querySelector("[data-t=py]").click()}};d.appendChild(b)}box.appendChild(d)});box.scrollTop=box.scrollHeight}
 
-    <div class="room-pill">
-      <strong id="activeRoomLabel">Room: team-1</strong>
-      <span id="syncStatus" style="color: #10b981;">● Ready</span>
-      <button class="btn secondary" id="installAppBtn" style="width:100%;font-size:12px;">⬇ Install to Desktop</button>
-    </div>
-  </aside>
+let lang = localStorage.getItem("ws_lang") || "en";
+function toggleLang() {
+  lang = lang === "en" ? "he" : "en";
+  localStorage.setItem("ws_lang", lang);
+  applyLang();
+}
+function applyLang() {
+  const he = lang === "he";
+  document.documentElement.dir = he ? "rtl" : "ltr";
+  $("langBtn").textContent = he ? "🌐 English" : "🌐 עברית";
+  const m = he
+    ? ["סביבת עבודה","🫧 מפת בועות","📄 גוגל דוקס","🌐 עורך HTML","🐍 טרמינל פייתון","💬 צ׳אט קבוצתי","⬇ התקן אפליקציה"]
+    : ["Team Workspace","🫧 Bubble Map","📄 Google Docs","🌐 HTML Studio","🐍 Python Terminal","💬 Group Chat","⬇ Install App"];
+  document.querySelector("h3").textContent = m[0];
+  document.querySelectorAll(".nav").forEach((b, i) => b.textContent = m[i + 1]);
+  document.querySelectorAll(".side .btn.sec")[1].textContent = m[6];
+  $("meName").placeholder = he ? "השם שלך..." : "Your name...";
+  $("rm").placeholder = he ? "חדר" : "Room";
+  $("chatTxt").placeholder = he ? "כתוב הודעה לצוות..." : "Type a message to your team...";
+}
+applyLang();
 
-  <main class="main">
-    <section id="view-bubble" class="view active"><iframe src="bubble-map.html"></iframe></section>
-
-    <section id="view-docs" class="view">
-      <div class="topbar">
-        <h2>Google Docs & Team Websites</h2>
-        <input type="text" id="customUrl" placeholder="Paste Google Doc or website link..." style="width: 300px;" />
-        <button class="btn" id="openPopupBtn">Open Window</button>
-        <button class="btn secondary" id="shareDocBtn">Save Link to Board</button>
-      </div>
-      <div class="docs-hub">
-        <div class="doc-card">
-          <h3>📝 Google Docs</h3>
-          <p>Create or edit shared team documents in a dedicated side window.</p>
-          <button class="btn" onclick="openAppWindow('https://docs.google.com')">Open Google Docs</button>
-        </div>
-        <div class="doc-card">
-          <h3>📁 Google Drive</h3>
-          <p>Access shared folders, slides, and project files.</p>
-          <button class="btn" onclick="openAppWindow('https://drive.google.com')">Open Google Drive</button>
-        </div>
-        <div class="doc-card">
-          <h3>📊 Google Sheets</h3>
-          <p>Track project data and spreadsheets with your team.</p>
-          <button class="btn" onclick="openAppWindow('https://sheets.google.com')">Open Google Sheets</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="view-html" class="view">
-      <div class="topbar">
-        <h2>Easy HTML Studio</h2>
-        <button class="btn" id="shareHtmlBtn">Send HTML to Group Board</button>
-      </div>
-      <div class="split">
-        <div class="pane"><div class="pane-header">HTML Code</div><textarea id="htmlCode" class="code-area"><h1>Hello Team!</h1><p>Edit this HTML live.</p></textarea></div>
-        <div class="pane"><div class="pane-header">Live Preview</div><iframe id="htmlPreview"></iframe></div>
-      </div>
-    </section>
-
-    <section id="view-python" class="view">
-      <div class="topbar">
-        <h2>Easy Python Terminal</h2>
-        <span id="pyStatus" style="font-size:12px;color:#94a3b8;">Loading Python...</span>
-        <button class="btn success" id="runPyBtn">▶ Run Python</button>
-        <button class="btn" id="sharePyBtn">Send Python to Group Board</button>
-      </div>
-      <div class="split">
-        <div class="pane"><div class="pane-header">Python Script</div><textarea id="pyCode" class="code-area">print("Hello from Python!")</textarea></div>
-        <div class="pane"><div class="pane-header">Output</div><div id="pyOutput" class="terminal-out">Click Run Python...</div></div>
-      </div>
-    </section>
-
-    <section id="view-group" class="view">
-      <div class="topbar">
-        <h2>Monday / ClickUp Group Board</h2>
-        <input type="text" id="dbUrlInput" placeholder="Firebase URL (for multi-PC sync)..." style="width: 240px;" />
-        <input type="text" id="roomInput" value="team-1" placeholder="Room Code" style="width: 120px;" />
-        <button class="btn" id="joinRoomBtn">Sync Room</button>
-      </div>
-
-      <div class="board-wrap">
-        <div class="new-task-bar">
-          <input type="text" id="taskTitle" placeholder="New task name..." style="flex: 2; min-width: 180px;" />
-          <input type="text" id="taskOwner" placeholder="Assignee" style="width: 130px;" />
-          <select id="taskPrio">
-            <option value="High">High Priority</option>
-            <option value="Medium" selected>Medium Priority</option>
-            <option value="Low">Low Priority</option>
-          </select>
-          <select id="taskTool">
-            <option value="General">General</option>
-            <option value="Bubble Map">Bubble Map</option>
-            <option value="Google Docs">Google Docs</option>
-            <option value="HTML">HTML Studio</option>
-            <option value="Python">Python Terminal</option>
-          </select>
-          <button class="btn" id="addTaskBtn">+ Add Task</button>
-        </div>
-
-        <div class="kanban">
-          <div class="col col-todo">
-            <div class="col-header"><span>📌 To Do</span><span id="count-todo">0</span></div>
-            <div id="list-todo" style="display:flex;flex-direction:column;gap:8px;"></div>
-          </div>
-          <div class="col col-working">
-            <div class="col-header"><span>⚡ Working On It</span><span id="count-working">0</span></div>
-            <div id="list-working" style="display:flex;flex-direction:column;gap:8px;"></div>
-          </div>
-          <div class="col col-done">
-            <div class="col-header"><span>✅ Done</span><span id="count-done">0</span></div>
-            <div id="list-done" style="display:flex;flex-direction:column;gap:8px;"></div>
-          </div>
-        </div>
-
-        <div class="shared-bar">
-          <strong style="font-size: 13px;">📦 Shared Team Files & Links</strong>
-          <div class="shared-items" id="sharedItems"></div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <script>
-    const $ = id => document.getElementById(id);
-
-    // Desktop Install Prompt
-    let deferredPrompt = null;
-    window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault();
-      deferredPrompt = e;
-    });
-    $('installAppBtn').addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt = null;
-      } else {
-        alert('To install as a desktop app:\n• Chrome/Edge: Click the Install icon on the right side of the address bar (or Menu → Install Team Workspace).\n• Safari (Mac): Click File → Add to Dock.');
-      }
-    });
-
-    // Navigation
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        btn.classList.add('active');
-        $('view-' + btn.dataset.tab).classList.add('active');
-      });
-    });
-
-    // Docs & Websites Popup Window
-    window.openAppWindow = url => {
-      if (!url.startsWith('http')) url = 'https://' + url;
-      window.open(url, '_blank', 'width=1100,height=750');
-    };
-    $('openPopupBtn').addEventListener('click', () => {
-      const u = $('customUrl').value.trim();
-      if (u) openAppWindow(u);
-    });
-
-    // HTML Studio
-    const updateHtml = () => $('htmlPreview').srcdoc = $('htmlCode').value;
-    $('htmlCode').addEventListener('input', updateHtml);
-    updateHtml();
-
-    // Python
-    let py = null;
-    loadPyodide().then(p => { py = p; $('pyStatus').textContent = '● Python Ready'; $('pyStatus').style.color = '#10b981'; });
-    $('runPyBtn').addEventListener('click', async () => {
-      if (!py) return;
-      py.runPython('import sys, io\nsys.stdout = io.StringIO()');
-      try {
-        await py.runPythonAsync($('pyCode').value);
-        $('pyOutput').textContent = py.runPython('sys.stdout.getvalue()') || '(Done)';
-      } catch (e) { $('pyOutput').textContent = e; }
-    });
-
-    // Monday / ClickUp Board
-    let room = localStorage.getItem('ws_room') || 'team-1';
-    let dbUrl = localStorage.getItem('ws_dbUrl') || '';
-    $('roomInput').value = room;
-    $('dbUrlInput').value = dbUrl;
-    $('activeRoomLabel').textContent = `Room: ${room}`;
-
-    let boardData = JSON.parse(localStorage.getItem('ws_board_' + room) || 'null') || {
-      tasks: [
-        { id: 1, title: 'Brainstorm ideas in Word Bubble Map', owner: 'Team', prio: 'High', tool: 'Bubble Map', status: 'working' },
-        { id: 2, title: 'Draft outline in Google Docs', owner: 'Team', prio: 'Medium', tool: 'Google Docs', status: 'todo' }
-      ],
-      shared: []
-    };
-
-    async function pushBoard() {
-      localStorage.setItem('ws_board_' + room, JSON.stringify(boardData));
-      renderBoard();
-      if (dbUrl) {
-        try {
-          const cleanUrl = dbUrl.replace(/\/$/, '');
-          await fetch(`${cleanUrl}/rooms/${encodeURIComponent(room)}.json`, {
-            method: 'PUT',
-            body: JSON.stringify(boardData)
-          });
-          $('syncStatus').textContent = '● Cloud Synced';
-        } catch (e) {}
-      }
-    }
-
-    async function pullBoard() {
-      if (!dbUrl) return;
-      try {
-        const cleanUrl = dbUrl.replace(/\/$/, '');
-        const res = await fetch(`${cleanUrl}/rooms/${encodeURIComponent(room)}.json`);
-        const remote = await res.json();
-        if (remote && remote.tasks) {
-          boardData = { tasks: remote.tasks || [], shared: remote.shared || [] };
-          localStorage.setItem('ws_board_' + room, JSON.stringify(boardData));
-          renderBoard();
-          $('syncStatus').textContent = '● Cloud Synced';
-        }
-      } catch (e) {}
-    }
-    setInterval(pullBoard, 4000);
-
-    function renderBoard() {
-      ['todo', 'working', 'done'].forEach(st => {
-        const list = $('list-' + st);
-        list.innerHTML = '';
-        const filtered = boardData.tasks.filter(t => t.status === st);
-        $('count-' + st).textContent = filtered.length;
-        filtered.forEach(t => {
-          const card = document.createElement('div');
-          card.className = 'task-card';
-          card.innerHTML = `
-            <div class="task-title">${t.title}</div>
-            <div class="task-meta">
-              <span class="pill prio-${t.prio}">${t.prio}</span>
-              <span class="pill" style="background:#334155;">👤 ${t.owner || 'Team'}</span>
-              <span class="pill" style="background:#1e293b;border:1px solid #475569;">${t.tool}</span>
-            </div>
-            <div class="task-actions">
-              ${st !== 'todo' ? `<button class="mini-btn" onclick="moveTask(${t.id}, 'todo')">← To Do</button>` : ''}
-              ${st !== 'working' ? `<button class="mini-btn" onclick="moveTask(${t.id}, 'working')">⚡ Working</button>` : ''}
-              ${st !== 'done' ? `<button class="mini-btn" onclick="moveTask(${t.id}, 'done')">✅ Done</button>` : ''}
-              <button class="mini-btn" style="margin-left:auto;color:#f87171;" onclick="deleteTask(${t.id})">×</button>
-            </div>
-          `;
-          list.appendChild(card);
-        });
-      });
-
-      const sharedWrap = $('sharedItems');
-      sharedWrap.innerHTML = '';
-      if (!boardData.shared.length) {
-        sharedWrap.innerHTML = '<span style="font-size:12px;color:#94a3b8;">Nothing shared yet.</span>';
-      }
-      boardData.shared.forEach(item => {
-        const btn = document.createElement('button');
-        btn.className = 'btn secondary';
-        btn.textContent = `${item.type}: ${item.label}`;
-        btn.onclick = () => {
-          if (item.type === 'Doc') openAppWindow(item.content);
-          else if (item.type === 'HTML') { $('htmlCode').value = item.content; updateHtml(); document.querySelector('[data-tab="html"]').click(); }
-          else if (item.type === 'Python') { $('pyCode').value = item.content; document.querySelector('[data-tab="python"]').click(); }
-        };
-        sharedWrap.appendChild(btn);
-      });
-    }
-
-    window.moveTask = (id, status) => { const t = boardData.tasks.find(x => x.id === id); if (t) { t.status = status; pushBoard(); } };
-    window.deleteTask = id => { boardData.tasks = boardData.tasks.filter(x => x.id !== id); pushBoard(); };
-
-    $('addTaskBtn').addEventListener('click', () => {
-      const title = $('taskTitle').value.trim();
-      if (!title) return;
-      boardData.tasks.push({ id: Date.now(), title, owner: $('taskOwner').value.trim() || 'Team', prio: $('taskPrio').value, tool: $('taskTool').value, status: 'todo' });
-      $('taskTitle').value = '';
-      pushBoard();
-    });
-
-    $('joinRoomBtn').addEventListener('click', () => {
-      room = $('roomInput').value.trim() || 'team-1';
-      dbUrl = $('dbUrlInput').value.trim();
-      localStorage.setItem('ws_room', room);
-      localStorage.setItem('ws_dbUrl', dbUrl);
-      $('activeRoomLabel').textContent = `Room: ${room}`;
-      pullBoard();
-      pushBoard();
-    });
-
-    $('shareDocBtn').addEventListener('click', () => {
-      const url = $('customUrl').value.trim();
-      if (!url) return;
-      boardData.shared.push({ type: 'Doc', label: url.replace(/^https?:\/\//, '').slice(0, 28), content: url });
-      pushBoard();
-      document.querySelector('[data-tab="group"]').click();
-    });
-
-    $('shareHtmlBtn').addEventListener('click', () => {
-      boardData.shared.push({ type: 'HTML', label: 'HTML #' + (boardData.shared.length + 1), content: $('htmlCode').value });
-      pushBoard();
-      document.querySelector('[data-tab="group"]').click();
-    });
-
-    $('sharePyBtn').addEventListener('click', () => {
-      boardData.shared.push({ type: 'Python', label: 'Python #' + (boardData.shared.length + 1), content: $('pyCode').value });
-      pushBoard();
-      document.querySelector('[data-tab="group"]').click();
-    });
-
-    renderBoard();
-    pullBoard();
-  </script>
+loadChat();
+</script>
 </body>
 </html>
