@@ -2,68 +2,62 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Team Workspace</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,sans-serif;background:#0f172a;
 color:#f8fafc;height:100vh;display:flex;overflow:hidden}
-.side{width:220px;background:#1e293b;border-inline-end:1px solid #334155;
-padding:16px 12px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
-.nav{padding:12px;background:transparent;color:#94a3b8;border:none;
-border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;
-text-align:start;width:100%}
-.nav:hover{background:rgba(255,255,255,0.06);color:#fff}
+.side{width:220px;background:#1e293b;padding:16px 12px;
+border-inline-end:1px solid #334155;display:flex;
+flex-direction:column;gap:8px;flex-shrink:0}
+.nav{padding:12px;background:transparent;color:#94a3b8;
+border:none;border-radius:10px;font-size:14px;
+font-weight:600;cursor:pointer;text-align:start;width:100%}
+.nav:hover{background:rgba(255,255,255,.06);color:#fff}
 .nav.active{background:#6366f1;color:#fff}
-.main{flex:1;display:flex;flex-direction:column;height:100vh;min-width:0}
-.view{display:none;flex:1;flex-direction:column;height:100%;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;height:100vh}
+.view{display:none;flex:1;flex-direction:column;height:100%}
 .view.active{display:flex}
-.bar{height:56px;background:#111827;border-bottom:1px solid #334155;
-display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
-input,textarea{background:#1f2937;border:1px solid #334155;color:#fff;
-border-radius:8px;padding:8px 12px;font-size:13px}
-.btn{background:#6366f1;color:#fff;border:none;border-radius:8px;
-padding:8px 14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.bar{height:56px;background:#111827;padding:0 16px;gap:10px;
+border-bottom:1px solid #334155;display:flex;align-items:center}
+input,textarea{background:#1f2937;border:1px solid #334155;
+color:#fff;border-radius:8px;padding:8px 12px;font-size:13px}
+.btn{background:#6366f1;color:#fff;border:none;
+border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer}
 .btn.sec{background:#1f2937;border:1px solid #334155}
 .btn.ok{background:#10b981;color:#052e16}
 iframe{width:100%;height:100%;border:none;flex:1;background:#fff}
-.split{display:flex;flex:1;overflow:hidden}
+.split{display:flex;flex:1}
 .pane{flex:1;display:flex;flex-direction:column;
 border-inline-end:1px solid #334155}
-.code{flex:1;background:#0b1120;color:#e2e8f0;font-family:monospace;
-font-size:14px;padding:16px;border:none;resize:none;direction:ltr}
-.out{flex:1;background:#020617;color:#34d399;font-family:monospace;
-font-size:14px;padding:16px;white-space:pre-wrap;overflow:auto;direction:ltr}
+.code{flex:1;background:#0b1120;color:#e2e8f0;font-size:14px;
+font-family:monospace;padding:16px;border:none;resize:none}
+.out{flex:1;background:#020617;color:#34d399;font-size:14px;
+font-family:monospace;padding:16px;white-space:pre-wrap}
 .chat-box{flex:1;padding:20px;overflow-y:auto;display:flex;
 flex-direction:column;gap:12px}
-.msg{max-width:75%;background:#1e293b;border:1px solid #334155;
-padding:10px 14px;border-radius:14px;display:flex;flex-direction:column;
-gap:6px;align-self:flex-start}
+.msg{max-width:75%;background:#1e293b;padding:10px 14px;
+border:1px solid #334155;border-radius:14px;display:flex;
+flex-direction:column;gap:6px;align-self:flex-start}
 .msg.me{background:#312e81;border-color:#6366f1;align-self:flex-end}
 .chat-input{padding:14px 16px;background:#111827;
-border-top:1px solid #334155;display:flex;gap:10px;flex-shrink:0}
-@media(max-width:700px){
-body{flex-direction:column}
-.side{width:100%;flex-direction:row;overflow-x:auto;padding:8px}
-.side h3{display:none}
-.nav{width:auto;padding:8px 10px;font-size:12px}
-#langBtn{margin-top:0!important}
-}
+border-top:1px solid #334155;display:flex;gap:10px}
 </style>
 </head>
 <body>
 <aside class="side">
 <h3 id="t0" style="padding:8px">Team Workspace</h3>
-<button id="t1" class="nav active" onclick="openTab('bubble',this)">
-🫧 Bubble Map</button>
-<button id="t2" class="nav" onclick="openTab('docs',this)">
-📄 Google Docs</button>
-<button id="t3" class="nav" onclick="openTab('html',this)">
-🌐 HTML Studio</button>
-<button id="t4" class="nav" onclick="openTab('py',this)">
-🐍 Python Terminal</button>
-<button id="t5" class="nav" onclick="openTab('group',this)">
-💬 Group Chat</button>
+<button id="t1" class="nav active"
+onclick="openTab('bubble',this)">🫧 Bubble Map</button>
+<button id="t2" class="nav"
+onclick="openTab('docs',this)">📄 Google Docs</button>
+<button id="t3" class="nav"
+onclick="openTab('html',this)">🌐 HTML Studio</button>
+<button id="t4" class="nav"
+onclick="openTab('py',this)">🐍 Python Terminal</button>
+<button id="t5" class="nav"
+onclick="openTab('group',this)">💬 Group Chat</button>
 <button id="langBtn" class="btn sec" style="margin-top:auto"
 onclick="toggleLang()">🌐 עברית</button>
 </aside>
@@ -73,29 +67,30 @@ onclick="toggleLang()">🌐 עברית</button>
 </section>
 <section id="v-docs" class="view">
 <div class="bar">
-<input id="url" placeholder="Paste Google Doc or URL..." style="width:280px">
+<input id="url" placeholder="Paste URL..." style="width:260px">
 <button class="btn" onclick="openDoc()">Open</button>
 <button class="btn sec"
 onclick="sendItem('Doc',url.value.slice(0,25),url.value)">
 Send to Chat</button>
 </div>
 <div style="padding:24px;display:flex;gap:12px">
-<button class="btn" onclick="openDoc('https://google.com')">
-Google Docs</button>
-<button class="btn" onclick="openDoc('https://google.com')">
-Google Drive</button>
+<button class="btn"
+onclick="openDoc('https://google.com')">Google Docs</button>
+<button class="btn"
+onclick="openDoc('https://google.com')">Google Drive</button>
 </div>
 </section>
 <section id="v-html" class="view">
 <div class="bar">
 <b style="margin-inline-end:auto">HTML Studio</b>
-<button class="btn" onclick="sendItem('HTML','HTML Code',hc.value)">
+<button class="btn"
+onclick="sendItem('HTML','HTML Code',hc.value)">
 Send to Chat</button>
 </div>
 <div class="split">
 <div class="pane">
-<textarea id="hc" class="code" oninput="hp.srcdoc=this.value">
-<h1>Hello!</h1></textarea>
+<textarea id="hc" class="code"
+oninput="hp.srcdoc=this.value"><h1>Hello!</h1></textarea>
 </div>
 <div class="pane"><iframe id="hp"></iframe></div>
 </div>
@@ -105,7 +100,8 @@ Send to Chat</button>
 <b style="margin-inline-end:auto">Python Terminal</b>
 <span id="ps">Ready</span>
 <button class="btn ok" onclick="runPy()">▶ Run</button>
-<button class="btn" onclick="sendItem('Python','Python Code',pc.value)">
+<button class="btn"
+onclick="sendItem('Python','Python Code',pc.value)">
 Send to Chat</button>
 </div>
 <div class="split">
@@ -118,13 +114,12 @@ Send to Chat</button>
 <section id="v-group" class="view">
 <div class="bar">
 <b id="t6" style="margin-inline-end:auto">💬 Team Group Chat</b>
-<span id="syncDot" style="font-size:12px;color:#10b981">
-● Connecting...</span>
-<input id="meName" placeholder="Your name..." style="width:130px"
+<span id="syncDot" style="font-size:12px;color:#10b981">● Live</span>
+<input id="meName" placeholder="Your name..." style="width:120px"
 onchange="localStorage.setItem('ws_me',this.value);drawChat()">
-<input id="rm" value="team-1" style="width:95px"
+<input id="rm" value="team-1" style="width:90px"
 onchange="msgMap={};drawChat();loadChat()">
-<button class="btn sec" onclick="clearChat()" title="Clear Chat">🗑️</button>
+<button class="btn sec" onclick="clearChat()">🗑️</button>
 </div>
 <div id="chatBox" class="chat-box"></div>
 <div class="chat-input">
@@ -136,19 +131,21 @@ onkeydown="if(event.key==='Enter')sendMsg()">
 </main>
 <script>
 const $=id=>document.getElementById(id);
-const DB="https://team-workspace-b4599-default-rtdb.europe-west1.firebasedatabase.app";
+const DB=["https:/",
+"team-workspace-b4599-default-rtdb.europe-west1.firebasedatabase.app"
+].join("/");
 $("meName").value=localStorage.getItem("ws_me")||"";
 let lang=localStorage.getItem("ws_lang")||"en";
 function openTab(tab,btn){
-document.querySelectorAll(".nav,.view").forEach(x=>x.classList.remove("active"));
+document.querySelectorAll(".nav,.view")
+.forEach(x=>x.classList.remove("active"));
 if(btn)btn.classList.add("active");
 $("v-"+tab).classList.add("active");
 if(tab==="py")initPy();
 }
 function toggleLang(){
 lang=lang==="en"?"he":"en";
-localStorage.setItem("ws_lang",lang);
-applyLang();
+localStorage.setItem("ws_lang",lang);applyLang();
 }
 function applyLang(){
 const he=lang==="he";
@@ -168,7 +165,8 @@ let py=null,pyL=false;
 function initPy(){
 if(py||pyL)return;pyL=true;$("ps").textContent="Loading...";
 let s=document.createElement("script");
-s.src="https://jsdelivr.net";
+s.src=["https:/","cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"]
+.join("/");
 s.onload=()=>loadPyodide().then(p=>{py=p;$("ps").textContent="Ready"});
 document.head.appendChild(s);
 }
@@ -183,24 +181,19 @@ $("po").textContent=py.runPython("sys.stdout.getvalue()")||"Done";
 }
 function openDoc(u){
 u=u||$("url").value.trim();
-if(u)window.open(u.startsWith("http")?u:"https://"+u,
-"_blank","width=1100,height=750");
+if(u)window.open(u.startsWith("http")?u:"https://"+u,"_blank");
 }
 let msgMap={};
 async function pushMsg(m){
 const id="m_"+Date.now()+"_"+Math.random().toString(36).slice(2,6);
-m.id=id;m.tsNum=Date.now();
-msgMap[id]=m;drawChat();
+m.id=id;m.tsNum=Date.now();msgMap[id]=m;drawChat();
 const rm=encodeURIComponent($("rm").value.trim()||"team-1");
 try{
 const res=await fetch(DB+"/chat/"+rm+"/"+id+".json",
 {method:"PUT",body:JSON.stringify(m)});
 if(!res.ok)throw new Error(res.status);
 $("syncDot").textContent="● Live";$("syncDot").style.color="#10b981";
-}catch(e){
-$("syncDot").textContent="● Err: "+e.message;
-$("syncDot").style.color="#ef4444";
-}
+}catch(e){$("syncDot").textContent="● Err";$("syncDot").style.color="#ef4444"}
 }
 async function loadChat(){
 const rm=encodeURIComponent($("rm").value.trim()||"team-1");
@@ -209,16 +202,12 @@ const res=await fetch(DB+"/chat/"+rm+".json?t="+Date.now(),
 {cache:"no-store"});
 if(!res.ok)throw new Error(res.status);
 const r=await res.json();
-msgMap=(r&&typeof r==="object")?r:{};
-drawChat();
+msgMap=(r&&typeof r==="object")?r:{};drawChat();
 $("syncDot").textContent="● Live";$("syncDot").style.color="#10b981";
-}catch(e){
-$("syncDot").textContent="● Err: "+e.message;
-$("syncDot").style.color="#ef4444";
-}
+}catch(e){$("syncDot").textContent="● Err";$("syncDot").style.color="#ef4444"}
 }
 function clearChat(){
-if(!confirm(lang==="he"?"למחוק את כל הצ׳אט?":"Clear all messages?"))return;
+if(!confirm(lang==="he"?"למחוק את הצ׳אט?":"Clear chat?"))return;
 msgMap={};drawChat();
 const rm=encodeURIComponent($("rm").value.trim()||"team-1");
 fetch(DB+"/chat/"+rm+".json",{method:"DELETE"}).catch(()=>{});
@@ -259,8 +248,8 @@ Object.values(msgMap).sort((a,b)=>(a.tsNum||0)-(b.tsNum||0))
 .forEach(m=>{
 let d=document.createElement("div");
 d.className="msg"+(m.u===me?" me":"");
-d.innerHTML=""+m.u+" • "
-+(m.ts||"")+""+m.t+"";
+d.innerHTML="<small style='color:#94a3b8'><b>"+m.u+"</b> • "
++(m.ts||"")+"</small><div>"+m.t+"</div>";
 if(m.item){
 let b=document.createElement("button");
 b.className="btn ok";b.textContent="Open "+m.item.type;
@@ -282,3 +271,6 @@ box.appendChild(d);
 if(atBottom)box.scrollTop=box.scrollHeight;
 }
 loadChat();
+</script>
+</body>
+</html>
