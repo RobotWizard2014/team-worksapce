@@ -126,11 +126,13 @@ function openDoc(u){u=u||$("url").value.trim();if(u)window.open(u.startsWith("ht
 let msgs=JSON.parse(localStorage.getItem("ws_chat_team-1")||"[]");
 function pushChat(){
 localStorage.setItem("ws_chat_"+$("rm").value,JSON.stringify(msgs));drawChat();
-fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json",{method:"PUT",body:JSON.stringify(msgs)}).catch(()=>{});
+const last=msgs[msgs.length-1];
+if(last)fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json",{method:"POST",body:JSON.stringify(last)}).then(()=>loadChat()).catch(()=>{});
 }
 async function loadChat(){
-try{let r=await(await fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json")).json();if(Array.isArray(r)){msgs=r;drawChat()}}catch(e){}
+try{let r=await(await fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json")).json();if(r){msgs=Array.isArray(r)?r:Object.values(r);drawChat()}}catch(e){}
 }
+
 setInterval(loadChat,3000);
 function who(){
 let n=$("meName").value.trim();
