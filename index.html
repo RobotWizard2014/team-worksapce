@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Team Workspace</title>
-
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,sans-serif;background:#0f172a;color:#f8fafc;height:100vh;display:flex;overflow:hidden}
@@ -14,7 +13,7 @@ body{font-family:-apple-system,sans-serif;background:#0f172a;color:#f8fafc;heigh
 .view{display:none;flex:1;flex-direction:column;height:100%}
 .view.active{display:flex}
 .bar{height:54px;background:#111827;border-bottom:1px solid #334155;display:flex;align-items:center;padding:0 16px;gap:10px}
-input,select,textarea{background:#1f2937;border:1px solid #334155;color:#fff;border-radius:8px;padding:8px 12px;font-size:13px}
+input,textarea{background:#1f2937;border:1px solid #334155;color:#fff;border-radius:8px;padding:8px 12px;font-size:13px}
 .btn{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer}
 .btn.sec{background:#1f2937;border:1px solid #334155}
 .btn.ok{background:#10b981;color:#052e16}
@@ -23,68 +22,71 @@ iframe{width:100%;height:100%;border:none;flex:1;background:#fff}
 .pane{flex:1;display:flex;flex-direction:column;border-right:1px solid #334155}
 .code{flex:1;background:#0b1120;color:#e2e8f0;font-family:monospace;font-size:14px;padding:16px;border:none;resize:none}
 .out{flex:1;background:#020617;color:#34d399;font-family:monospace;font-size:14px;padding:16px;white-space:pre-wrap;overflow:auto}
-.board{padding:16px;display:flex;flex-direction:column;gap:16px;flex:1;overflow:auto}
-.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;flex:1}
-.col{background:#111827;border:1px solid #334155;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
-.card{background:#1f2937;border:1px solid #334155;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.chat-box{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:72%;background:#1e293b;border:1px solid #334155;padding:10px 14px;border-radius:14px;display:flex;flex-direction:column;gap:6px;align-self:flex-start}
+.msg.me{background:#312e81;border-color:#6366f1;align-self:flex-end}
+.msg-meta{font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;gap:12px}
+.msg-text{font-size:14px;line-height:1.4;word-break:break-word}
+.chat-input{padding:14px 16px;background:#111827;border-top:1px solid #334155;display:flex;gap:10px}
 </style>
 </head>
 <body>
 <aside class="side">
 <h3 style="padding:8px">Team Workspace</h3>
-<button class="nav active" data-t="bubble">Bubble Map</button>
-<button class="nav" data-t="docs">Google Docs</button>
-<button class="nav" data-t="html">HTML Studio</button>
-<button class="nav" data-t="py">Python Terminal</button>
-<button class="nav" data-t="group">Group Board</button>
-<button class="btn sec" style="margin-top:auto" onclick="alert('Chrome/Edge: Click Install icon in address bar.\nSafari Mac: File -> Add to Dock.')">Install App</button>
+<button class="nav active" data-t="bubble">🫧 Bubble Map</button>
+<button class="nav" data-t="docs">📄 Google Docs</button>
+<button class="nav" data-t="html">🌐 HTML Studio</button>
+<button class="nav" data-t="py">🐍 Python Terminal</button>
+<button class="nav" data-t="group">💬 Group Chat</button>
+<button class="btn sec" style="margin-top:auto" onclick="alert('Chrome/Edge: Click Install icon in address bar.\nSafari Mac: File -> Add to Dock.')">⬇ Install App</button>
 </aside>
 <main class="main">
 <section id="v-bubble" class="view active"><iframe id="bf" src="bubble-map.html"></iframe></section>
 <section id="v-docs" class="view">
-<div class="bar"><input id="url" placeholder="Paste Google Doc or site URL..." style="width:300px"><button class="btn" onclick="openDoc()">Open</button><button class="btn sec" onclick="shareDoc()">Save to Board</button></div>
+<div class="bar"><input id="url" placeholder="Paste Google Doc or site URL..." style="width:300px"><button class="btn" onclick="openDoc()">Open</button><button class="btn sec" onclick="sendItem('Doc',url.value.slice(0,28),url.value)">Send to Chat</button></div>
 <div style="padding:24px;display:flex;gap:12px"><button class="btn" onclick="window.open('https://google.com','_blank','width=1100,height=750')">Open Google Docs</button><button class="btn" onclick="window.open('https://google.com','_blank','width=1100,height=750')">Open Google Drive</button></div>
 </section>
 <section id="v-html" class="view">
-<div class="bar"><b style="margin-right:auto">HTML Studio</b><button class="btn" onclick="shareCode('HTML',hc.value)">Send to Board</button></div>
+<div class="bar"><b style="margin-right:auto">HTML Studio</b><button class="btn" onclick="sendItem('HTML','HTML Code',hc.value)">Send to Chat</button></div>
 <div class="split"><div class="pane"><textarea id="hc" class="code" oninput="hp.srcdoc=this.value"><h1>Hello Team!</h1></textarea></div><div class="pane"><iframe id="hp"></iframe></div></div>
 </section>
 <section id="v-py" class="view">
-<div class="bar"><b style="margin-right:auto">Python Terminal</b><span id="ps">Loading...</span><button class="btn ok" onclick="runPy()">Run</button><button class="btn" onclick="shareCode('Python',pc.value)">Send to Board</button></div>
-<div class="split"><div class="pane"><textarea id="pc" class="code">print("Hello Team!")</textarea></div><div class="pane"><div id="po" class="out">Ready</div></div></div>
+<div class="bar"><b style="margin-right:auto">Python Terminal</b><span id="ps">Ready</span><button class="btn ok" onclick="runPy()">▶ Run</button><button class="btn" onclick="sendItem('Python','Python Script',pc.value)">Send to Chat</button></div>
+<div class="split"><div class="pane"><textarea id="pc" class="code">print("Hello Team!")</textarea></div><div class="pane"><div id="po" class="out">Click Run...</div></div></div>
 </section>
 <section id="v-group" class="view">
-<div class="bar"><b style="margin-right:auto">Group Board</b><input id="db" placeholder="Firebase URL (optional)"><input id="rm" value="team-1" style="width:100px"><button class="btn" onclick="syncRm()">Sync</button></div>
-<div class="board">
-<div style="display:flex;gap:8px"><input id="tt" placeholder="New task..." style="flex:1"><input id="ow" placeholder="Owner" style="width:120px"><select id="pr"><option>High</option><option selected>Medium</option><option>Low</option></select><button class="btn" onclick="addTask()">+ Add</button></div>
-<div class="cols">
-<div class="col"><b>To Do</b><div id="c-todo"></div></div>
-<div class="col"><b>Working</b><div id="c-working"></div></div>
-<div class="col"><b>Done</b><div id="c-done"></div></div>
+<div class="bar">
+<b style="margin-right:auto">💬 Team Group Chat</b>
+<input id="meName" placeholder="Your name..." style="width:130px" onchange="localStorage.setItem('ws_me',this.value)">
+<input id="rm" value="team-1" placeholder="Room" style="width:95px" onchange="loadChat()">
 </div>
-<div style="background:#1f2937;padding:12px;border-radius:12px"><b>Shared Maps & Files (Click to open):</b><div id="sh" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div></div>
+<div id="chatBox" class="chat-box"></div>
+<div class="chat-input">
+<input id="chatTxt" placeholder="Type a message to your team..." style="flex:1" onkeydown="if(event.key==='Enter')sendMsg()">
+<button class="btn" onclick="sendMsg()">Send</button>
 </div>
 </section>
 </main>
 <script>
 const $=id=>document.getElementById(id);
+const DB="https://firebasedatabase.app";
+$("meName").value=localStorage.getItem("ws_me")||"";
+let py=null,pyL=false;
+function initPy(){if(py||pyL)return;pyL=true;$("ps").textContent="Loading...";let s=document.createElement("script");s.src="https://jsdelivr.net";s.onload=()=>loadPyodide().then(p=>{py=p;$("ps").textContent="Ready"});document.head.appendChild(s)}
 document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav,.view").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("v-"+b.dataset.t).classList.add("active");if(b.dataset.t==="py")initPy()});
 $("hp").srcdoc=$("hc").value;
-let py=null,pyLoading=false;function initPy(){if(py||pyLoading)return;pyLoading=true;let sc=document.createElement("script");sc.src="https://jsdelivr.net";sc.onload=()=>loadPyodide().then(p=>{py=p;$("ps").textContent="Ready"});document.head.appendChild(sc)}
-async function runPy(){if(!py)return;py.runPython("import sys,io\nsys.stdout=io.StringIO()");try{await py.runPythonAsync($("pc").value);$("po").textContent=py.runPython("sys.stdout.getvalue()")||"Done"}catch(e){$("po").textContent=e}}
+async function runPy(){if(!py){initPy();return}py.runPython("import sys,io\nsys.stdout=io.StringIO()");try{await py.runPythonAsync($("pc").value);$("po").textContent=py.runPython("sys.stdout.getvalue()")||"Done"}catch(e){$("po").textContent=e}}
 function openDoc(u){u=u||$("url").value.trim();if(u)window.open(u.startsWith("http")?u:"https://"+u,"_blank","width=1100,height=750")}
-let data=JSON.parse(localStorage.getItem("ws_d")||"null")||{tasks:[],shared:[]};
-async function save(){localStorage.setItem("ws_d",JSON.stringify(data));draw();let u=$("db").value.trim();if(u)fetch(u.replace(/\/$/,"")+"/rooms/"+$("rm").value+".json",{method:"PUT",body:JSON.stringify(data)})}
-async function syncRm(){let u=$("db").value.trim();if(!u)return;let r=await(await fetch(u.replace(/\/$/,"")+"/rooms/"+$("rm").value+".json")).json();if(r){data={tasks:r.tasks||[],shared:r.shared||[]};draw()}}
-setInterval(syncRm,4000);
-window.addEventListener("message",e=>{if(e.data&&e.data.type==="SHARE_MAP"){data.shared.push({t:"Map",l:e.data.map.name||"Bubble Map",c:e.data.map});save();document.querySelector("[data-t=group]").click()}});
-function addTask(){if(!$("tt").value.trim())return;data.tasks.push({id:Date.now(),t:$("tt").value,o:$("ow").value||"Team",p:$("pr").value,s:"todo"});$("tt").value="";save()}
-function mv(id,s){let x=data.tasks.find(i=>i.id===id);if(x){x.s=s;save()}}
-function shareDoc(){let u=$("url").value.trim();if(u){data.shared.push({t:"Doc",l:u.slice(0,25),c:u});save();document.querySelector("[data-t=group]").click()}}
-function shareCode(t,c){data.shared.push({t:t,l:t+" #"+(data.shared.length+1),c:c});save();document.querySelector("[data-t=group]").click()}
-function draw(){["todo","working","done"].forEach(s=>{let el=$("c-"+s);el.innerHTML="";data.tasks.filter(x=>x.s===s).forEach(x=>{el.innerHTML+=`<div class="card"><b>${x.t}</b><small>${x.p} • ${x.o}</small><div><button onclick="mv(${x.id},'todo')">ToDo</button><button onclick="mv(${x.id},'working')">Work</button><button onclick="mv(${x.id},'done')">Done</button></div></div>`})});
-let sh=$("sh");sh.innerHTML="";data.shared.forEach(i=>{let b=document.createElement("button");b.className="btn sec";b.textContent=i.t+": "+i.l;b.onclick=()=>{if(i.t==="Map"){document.querySelector("[data-t=bubble]").click();$("bf").contentWindow.postMessage({type:"LOAD_MAP",map:i.c},"*")}else if(i.t==="Doc")openDoc(i.c);else if(i.t==="HTML"){$("hc").value=i.c;$("hp").srcdoc=i.c;document.querySelector("[data-t=html]").click()}else{$("pc").value=i.c;document.querySelector("[data-t=py]").click()}};sh.appendChild(b)})}
-draw();
+let msgs=[];
+async function pushChat(){localStorage.setItem("ws_chat_"+$("rm").value,JSON.stringify(msgs));drawChat();await fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json",{method:"PUT",body:JSON.stringify(msgs)})}
+async function loadChat(){try{let r=await(await fetch(DB+"/chat/"+encodeURIComponent($("rm").value)+".json")).json();if(Array.isArray(r)){msgs=r;drawChat()}}catch(e){}}
+setInterval(loadChat,3000);
+function who(){let n=$("meName").value.trim();if(!n){n=prompt("Enter your name for the chat:")||"Teammate";$("meName").value=n;localStorage.setItem("ws_me",n)}return n}
+function sendMsg(){let t=$("chatTxt").value.trim();if(!t)return;msgs.push({u:who(),t:t,ts:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});$("chatTxt").value="";pushChat()}
+function sendItem(type,label,content){if(!content)return;msgs.push({u:who(),t:"Shared a "+type+": "+label,item:{type,label,content},ts:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});pushChat();document.querySelector("[data-t=group]").click()}
+window.addEventListener("message",e=>{if(e.data&&e.data.type==="SHARE_MAP")sendItem("Map",e.data.map.name||"Bubble Map",e.data.map)});
+function drawChat(){let box=$("chatBox"),me=$("meName").value.trim();box.innerHTML="";msgs.forEach((m,i)=>{let d=document.createElement("div");d.className="msg"+(m.u===me?" me":"");d.innerHTML=`<div class="msg-meta"><b>${m.u}</b><span>${m.ts||""}</span></div><div class="msg-text">${m.t}</div>`;if(m.item){let b=document.createElement("button");b.className="btn ok";b.style.marginTop="4px";b.textContent="Open "+m.item.type;b.onclick=()=>{if(m.item.type==="Map"){document.querySelector("[data-t=bubble]").click();$("bf").contentWindow.postMessage({type:"LOAD_MAP",map:m.item.content},"*")}else if(m.item.type==="Doc")openDoc(m.item.content);else if(m.item.type==="HTML"){$("hc").value=m.item.content;$("hp").srcdoc=m.item.content;document.querySelector("[data-t=html]").click()}else{$("pc").value=m.item.content;initPy();document.querySelector("[data-t=py]").click()}};d.appendChild(b)}box.appendChild(d)});box.scrollTop=box.scrollHeight}
+loadChat();
 </script>
 </body>
 </html>
