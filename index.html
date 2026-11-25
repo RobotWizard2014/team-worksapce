@@ -136,8 +136,7 @@ onkeydown="if(event.key==='Enter')sendMsg()">
 </main>
 <script>
 const $=id=>document.getElementById(id);
-const DB="https://team-workspace-b4599-default-rtdb"
-+".europe-west1.firebasedatabase.app";
+const DB="https://team-workspace-b4599-default-rtdb.europe-west1.firebasedatabase.app";
 $("meName").value=localStorage.getItem("ws_me")||"";
 let lang=localStorage.getItem("ws_lang")||"en";
 function openTab(tab,btn){
